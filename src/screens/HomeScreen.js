@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
-import { FlatList, Text, View, StyleSheet, TouchableWithoutFeedback, TouchableOpacity, Platform } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  FlatList, Text, View, StyleSheet,
+  TouchableWithoutFeedback, TouchableOpacity, Platform
+} from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import { StatusBar } from 'expo-status-bar';
 
-export default function HomeScreen({ maintenanceMode, setMaintenanceMode }) {
-
- 
+export default function HomeScreen({ navigation, maintenanceMode, setMaintenanceMode }) {
   const [touches, setTouches] = useState([]);
+  const clearTouchesRef = useRef(() => {});
 
   // Define the path to the log file
   const logFilePath = FileSystem.documentDirectory + "ghost_touch_log.csv";
@@ -17,16 +19,17 @@ export default function HomeScreen({ maintenanceMode, setMaintenanceMode }) {
     const touch = event.nativeEvent;
     const currentTime = new Date();
     const timezoneOffsetInHours = currentTime.getTimezoneOffset() / -60;
-    const localISOTime = new Date(currentTime.getTime() + timezoneOffsetInHours * 3600 * 1000).toISOString().slice(0, 19).replace('T', ' ');
+    const localISOTime = new Date(currentTime.getTime() + timezoneOffsetInHours * 3600 * 1000)
+      .toISOString().slice(0, 19).replace('T', ' ');
     const touchInfo = {
-      x: parseFloat(touch.locationX.toFixed(2)), 
-      y: parseFloat(touch.locationY.toFixed(2)), 
+      x: parseFloat(touch.locationX.toFixed(2)),
+      y: parseFloat(touch.locationY.toFixed(2)),
       timestamp: localISOTime,
     };
-  
+
     setTouches([...touches, touchInfo]);
     const csvContent = `${touchInfo.timestamp}, ${touchInfo.x}, ${touchInfo.y}\n`;
-  
+
     const fileInfo = await FileSystem.getInfoAsync(logFilePath);
     if (!fileInfo.exists) {
       await FileSystem.writeAsStringAsync(logFilePath, csvContent, { encoding: FileSystem.EncodingType.UTF8 });
@@ -37,9 +40,34 @@ export default function HomeScreen({ maintenanceMode, setMaintenanceMode }) {
     }
   };
 
+  clearTouchesRef.current = () => {
+    setTouches([]);
+  };
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerTitle: 'Maintenance screen',
+      headerTitleAlign: 'center',
+      headerRight: () => (
+        maintenanceMode ? 
+        <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+          <Text style={{ marginRight: 10 }}>Settings</Text>
+        </TouchableOpacity>
+        : null
+      ),
+      headerLeft: () => (
+        maintenanceMode ?
+        <TouchableOpacity onPress={clearTouchesRef.current}>
+          <Text style={{ marginLeft: 10 }}>Clear recent logs</Text>
+        </TouchableOpacity>
+        : null
+      )
+    });
+  }, [navigation, maintenanceMode]);
+
   return (
     <>
-      <StatusBar style="auto" hidden={true}  /> 
+      <StatusBar style="auto" hidden={true} />
       <TouchableWithoutFeedback onPress={handleTouch}>
         <View style={styles.container}>
           <TouchableOpacity style={styles.button} onPress={() => setMaintenanceMode(prev => !prev)}>
