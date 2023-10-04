@@ -58,7 +58,7 @@ export default function HomeScreen({ navigation, maintenanceMode, setMaintenance
       headerLeft: () => (
         maintenanceMode ?
         <TouchableOpacity onPress={clearTouchesRef.current}>
-          <Text style={{ marginLeft: 10 }}>Clear recent logs</Text>
+          <Text style={{ marginLeft: 10 }}>Clear display</Text>
         </TouchableOpacity>
         : null
       )

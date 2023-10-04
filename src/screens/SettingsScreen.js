@@ -47,7 +47,7 @@ export default function SettingsScreen() {
 
   return (
     <View style={styles.container}>
-      <Text>Settings</Text>
+      <Text>Log options</Text>
       <TouchableOpacity style={styles.button} onPress={shareLogFile}>
         <Text style={styles.buttonText}>Export Log File</Text>
       </TouchableOpacity>
