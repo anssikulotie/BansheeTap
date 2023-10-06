@@ -26,19 +26,22 @@ export default function HomeScreen({ navigation, maintenanceMode, setMaintenance
       y: parseFloat(touch.locationY.toFixed(2)),
       timestamp: localISOTime,
     };
-
+  
     setTouches([...touches, touchInfo]);
     const csvContent = `${touchInfo.timestamp}, ${touchInfo.x}, ${touchInfo.y}\n`;
-
+  
     const fileInfo = await FileSystem.getInfoAsync(logFilePath);
-    if (!fileInfo.exists) {
-      await FileSystem.writeAsStringAsync(logFilePath, csvContent, { encoding: FileSystem.EncodingType.UTF8 });
-    } else {
-      const existingContent = await FileSystem.readAsStringAsync(logFilePath, { encoding: FileSystem.EncodingType.UTF8 });
-      const combinedContent = existingContent + csvContent;
-      await FileSystem.writeAsStringAsync(logFilePath, combinedContent, { encoding: FileSystem.EncodingType.UTF8 });
-    }
+if (!fileInfo.exists) {
+    const legend = "timestamp, x-coordinate, y-coordinate\n";
+    await FileSystem.writeAsStringAsync(logFilePath, legend + csvContent, { encoding: FileSystem.EncodingType.UTF8 });
+} else {
+    const existingContent = await FileSystem.readAsStringAsync(logFilePath, { encoding: FileSystem.EncodingType.UTF8 });
+    const combinedContent = existingContent + csvContent;
+    await FileSystem.writeAsStringAsync(logFilePath, combinedContent, { encoding: FileSystem.EncodingType.UTF8 });
+}
+
   };
+  
 
   clearTouchesRef.current = () => {
     setTouches([]);
@@ -118,8 +121,8 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: "#335BFF",
-    paddingVertical: 50,
-    paddingHorizontal: 50,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
     borderRadius: 10,
     marginTop: 10,
     alignItems: 'center',
