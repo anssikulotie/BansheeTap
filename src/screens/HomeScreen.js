@@ -1,44 +1,55 @@
-//import necessary modules
-import React, { useState, useEffect, useRef } from 'react';
-import {FlatList, Text, View, StyleSheet, TouchableWithoutFeedback, TouchableOpacity, Platform} from 'react-native';
+import React, { useState, useEffect,useNavigation , useRef } from 'react';
+import { FlatList, Text, View, StyleSheet, TouchableWithoutFeedback, TouchableOpacity, Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import { StatusBar } from 'expo-status-bar';
 import { FontAwesome5 } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import StartupScreen from './StartupScreen';
 
-// Define the HomeScreen component
-export default function HomeScreen({ navigation, maintenanceMode, setMaintenanceMode }) {
-  //State for touches
+export default function HomeScreen({ navigation, route, maintenanceMode, setMaintenanceMode }) {
+  
+  // State variables
   const [touches, setTouches] = useState([]);
-  //Ref for clearing touches
-  const clearTouchesRef = useRef(() => {});
-  //Ref for double tap detection
-  const lastTap = useRef(null);
-  //State for double tap hint
-  const [showDoubleTapHint, setShowDoubleTapHint] = useState(false); 
-  //State for layout width and height
+  const [showDoubleTapHint, setShowDoubleTapHint] = useState(false);
   const [layoutWidth, setLayoutWidth] = useState(0);
   const [layoutHeight, setLayoutHeight] = useState(0);
-  //State for touch failure detection
   const [touchFailureDetected, setTouchFailureDetected] = useState(false);
+  const [isStartupScreenVisible, setIsStartupScreenVisible] = useState(false);
+  const [deviceId, setDeviceId] = useState('');
 
-// Define the function that will handle the double tap to toggle maintenance mode
+  const clearTouchesRef = useRef(() => {});
+  const lastTap = useRef(null);
+
+  const getLogFilePath = () => {
+    return `${FileSystem.documentDirectory}${deviceId}_touch_event_log.csv`;
+  }
+  const logFilePath = getLogFilePath();
+
+  const handleDeviceIdSubmit = async (id) => {
+    setDeviceId(id);
+    setIsStartupScreenVisible(false);
+    try {
+        await AsyncStorage.setItem('@device_id', id);
+    } catch (error) {
+        console.error("Error saving Device ID to AsyncStorage:", error);
+    }
+};
+
+
   const handleDoubleTap = () => {
     const now = Date.now();
     const timeInterval = now - (lastTap.current || 0);
 
-    if (timeInterval < 600 && showDoubleTapHint) { // If the second tap comes within 600ms of the first tap, toggle maintenance mode
+    if (timeInterval < 600 && showDoubleTapHint) {
       setMaintenanceMode(prev => !prev);
-      setShowDoubleTapHint(false); // Hide hint after second tap
+      setShowDoubleTapHint(false);
     } else {
-      setShowDoubleTapHint(true); // Show hint on first tap
+      setShowDoubleTapHint(true);
     }
 
     lastTap.current = now;
-  };;
-  // Define the path to the log file
-  const logFilePath = FileSystem.documentDirectory + "touch_event_log.csv";
+  };
 
-  // Define the function that will handle the touch events
   const handleTouch = async (event) => {
     if (maintenanceMode) return;
     setTouchFailureDetected(true);
@@ -54,8 +65,8 @@ export default function HomeScreen({ navigation, maintenanceMode, setMaintenance
       .toISOString().slice(0, 19).replace('T', ' ');
   // Create an object with the touch coordinates and timestamp
     const touchInfo = {
-      x: parseFloat(adjustedX.toFixed(2)),
-      y: parseFloat(adjustedY.toFixed(2)),
+      x: parseFloat(adjustedX.toFixed(0)),
+      y: parseFloat(adjustedY.toFixed(0)),
       timestamp: localISOTime,
     };
   // Add the touch object to the log file
@@ -67,42 +78,75 @@ if (!fileInfo.exists) { // If the file doesn't exist, create a new file with a l
     const legend = "timestamp, x-coordinate, y-coordinate\n";
     await FileSystem.writeAsStringAsync(logFilePath, legend + csvContent, { encoding: FileSystem.EncodingType.UTF8 });
 } else { // If the file already exists, append the touch event to the end of the file
-    const existingContent = await FileSystem.readAsStringAsync(logFilePath, { encoding: FileSystem.EncodingType.UTF8 });
-    const combinedContent = existingContent + csvContent;
-    await FileSystem.writeAsStringAsync(logFilePath, combinedContent, { encoding: FileSystem.EncodingType.UTF8 });
+    await FileSystem.writeAsStringAsync(logFilePath, csvContent, { encoding: FileSystem.EncodingType.UTF8, append: true });
+
 }
 
   };
   
 // Define the function that will clear the touches array
-  clearTouchesRef.current = () => {
-    setTouches([]);
-    setTouchFailureDetected(false); // Reset the touch failure detection indicator
+clearTouchesRef.current = () => {
+  setTouches([]);
+  setTouchFailureDetected(false);
 };
 
+useEffect(() => {
+  const checkLogfile = async () => {
+    const fileInfo = await FileSystem.getInfoAsync(logFilePath);
+    setIsStartupScreenVisible(!fileInfo.exists);
+  };
 
-  useEffect(() => {
-    // Set the navigation options for this screen
-    navigation.setOptions({
-      headerShown: maintenanceMode,
-      headerTitle: 'Maintenance screen',
-      headerTitleAlign: 'center',
-      headerRight: () => (
-        maintenanceMode ? 
-        <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-          <Text style={{ marginRight: 10 }}>Settings</Text>
-        </TouchableOpacity>
-        : null
-      ),
-      headerLeft: () => (
-        maintenanceMode ?
-        <TouchableOpacity onPress={clearTouchesRef.current}>
-          <Text style={{ marginLeft: 10 }}>Clear display</Text>
-        </TouchableOpacity>
-        : null
-      )
-    });
+  if (deviceId) {
+    checkLogfile();
+  }
+}, [deviceId]);
+
+useEffect(() => {
+  const fetchDeviceId = async () => {
+    const storedId = await AsyncStorage.getItem('@device_id');
+    if (storedId) {
+      setDeviceId(storedId);
+    } else {
+      setIsStartupScreenVisible(true);
+    }
+  };
+
+  fetchDeviceId();
+}, []);
+//newDeviceId
+useEffect(() => {
+  if (route.params?.newDeviceId) {
+      handleDeviceIdSubmit(route.params.newDeviceId);
+      // Reset the parameter to avoid continuous re-initialization
+      navigation.setParams({ newDeviceId: undefined });
+  }
+}, [route.params?.newDeviceId]);
+useEffect(() => {
+  navigation.setOptions({
+    headerShown: maintenanceMode,
+    headerTitle: 'Maintenance screen',
+    headerTitleAlign: 'center',
+    headerRight: () => (
+      maintenanceMode ? 
+      <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
+        <Text style={{ marginRight: 10 }}>Settings</Text>
+      </TouchableOpacity>
+      : null
+    ),
+    headerLeft: () => (
+      maintenanceMode ?
+      <TouchableOpacity onPress={clearTouchesRef.current}>
+        <Text style={{ marginLeft: 10 }}>Clear display</Text>
+      </TouchableOpacity>
+      : null
+    )
+  });
 }, [navigation, maintenanceMode]);
+
+
+if (isStartupScreenVisible) {
+  return <StartupScreen onDeviceIdSubmit={handleDeviceIdSubmit} />;
+}
 
 
 return ( // Return the JSX for the HomeScreen component

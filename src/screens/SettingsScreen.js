@@ -1,37 +1,91 @@
-//import necessary packages
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+// import necessary packages
+import React, { useState, useEffect,useNavigation  } from 'react';
+import {Alert,  Button, View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
-// Define the SettingsScreen component
-export default function SettingsScreen() {
-  // Define the path to the log file
-  const logFilePath = FileSystem.documentDirectory + "touch_event_log.csv";
-// Define the function that will share the log file
-  const shareLogFile = async () => {
-    const fileInfo = await FileSystem.getInfoAsync(logFilePath);
-  // Check if the log file exists
-    if (!fileInfo.exists) {
-      alert("No log file found!");
-      return;
-    }
-  // Check if sharing is available on the device
-    if (!(await Sharing.isAvailableAsync())) {
-      alert(`Sharing isn't available on your platform`);
-      return;
-    }
-  
-    try {
-      await Sharing.shareAsync(logFilePath);
-    } catch (error) {
-      // Error sharing the log file
-      alert("An error occurred while sharing the log file.");
-      console.error(error);
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+export default function SettingsScreen({ navigation, }) {
+  const [newDeviceId, setNewDeviceId] = useState('');
+  const [deviceId, setDeviceId] = useState('');
+
+
+  const handleSave = () => {
+    if (newDeviceId) {
+        Alert.alert(
+            'Start New Session?', // Alert Title
+            'This will start a new session with the new Device ID. Previous data will be overwritten. Continue?', // Alert Message
+            [
+                {
+                    text: 'Cancel',
+                    style: 'cancel'
+                },
+                {
+                    text: 'OK', 
+                    onPress: async () => {
+                        try {
+                            await AsyncStorage.setItem('@device_id', newDeviceId);
+                            setDeviceId(newDeviceId);  // Update the deviceId state here
+                            navigation.navigate('HomeScreen', { newDeviceId });
+                        } catch (error) {
+                            console.error("Error saving Device ID to AsyncStorage:", error);
+                        }
+                    }
+                }
+            ]
+        );
     }
   };
-// Define the function that will delete the log file
-  const deleteLogFile = async () => {
+  
+  const clearDeviceId = async () => {
+    console.log("Attempting to clear Device ID");
     try {
+      await AsyncStorage.removeItem('@device_id');
+      console.log("Device ID cleared from AsyncStorage");
+      setDeviceId(''); // Reset the state
+      console.log("Device ID state reset");
+    } catch (error) {
+      console.error("Error clearing device ID: ", error);
+    }
+  };
+
+  const logFilePath = `${FileSystem.documentDirectory}${deviceId}_touch_event_log.csv`;
+
+  const shareLogFile = async () => {
+  const logFilePath = `${FileSystem.documentDirectory}${deviceId}_touch_event_log.csv`;
+  
+  // Get file info
+  console.log("Looking for log file at:", logFilePath);
+
+  const fileInfo = await FileSystem.getInfoAsync(logFilePath);
+
+  // Check if the log file exists
+  if (!fileInfo.exists) {
+    alert("No log file found!");
+    return;
+  }
+
+  // Check if sharing is available on the device
+  if (!(await Sharing.isAvailableAsync())) {
+    alert(`Sharing isn't available on your platform`);
+    return;
+  }
+
+  try {
+    await Sharing.shareAsync(logFilePath);
+  } catch (error) {
+    // Error sharing the log file
+    alert("An error occurred while sharing the log file.");
+    console.error(error);
+  }
+};
+
+// Define the function that will delete the log file
+const deleteLogFile = async () => {
+  const logFilePath = `${FileSystem.documentDirectory}${deviceId}_touch_event_log.csv`;
+    try {
+      console.log("Looking for log file at:", logFilePath);
+
       const fileInfo = await FileSystem.getInfoAsync(logFilePath);
       // Check if the log file exists
       if (!fileInfo.exists) {
@@ -48,26 +102,97 @@ export default function SettingsScreen() {
       alert("Error occurred:", error);
     }
   };
-// Return the JSX for the SettingsScreen component
+// Define the function that will save the device ID to AsyncStorage
+const saveDeviceId = async () => {
+  try {
+      await AsyncStorage.setItem('@device_id', deviceId);
+  } catch (error) {
+      console.error("Error saving device ID: ", error);
+  }
+};
+
+
+// Define the function that will fetch the device ID from AsyncStorage
+  useEffect(() => {
+    const fetchDeviceId = async () => {
+        try {
+            const storedId = await AsyncStorage.getItem('@device_id');
+            if (storedId) setDeviceId(storedId);
+        } catch (error) {
+            console.error("Error fetching device ID: ", error);
+        }
+    };
+    fetchDeviceId();
+}, []);
+
+
+
+
   return (
     <View style={styles.container}>
-      <Text style={styles.logOptionsText}>Log options</Text>
-      <TouchableOpacity style={styles.button} onPress={shareLogFile}>
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.textInput}
+          value={newDeviceId}
+          onChangeText={setNewDeviceId}
+          placeholder="Enter New Device ID"
+        />
+        <Button
+          title="Save"
+          onPress={handleSave}
+        />
+      </View>
+      {deviceId ? 
+        <View style={styles.infoContainer}>
+          <Text style={styles.idText}>Current Device ID: {deviceId}</Text>
+        </View>
+        : null
+      }
+      <TouchableOpacity
+        style={{ ...styles.button, backgroundColor: "#FF0000" }}
+        onPress={clearDeviceId}
+      >
+        <Text style={styles.buttonText}>Clear Device ID</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={shareLogFile}
+      >
         <Text style={styles.buttonText}>Export Log File</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={deleteLogFile}>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={deleteLogFile}
+      >
         <Text style={styles.buttonText}>Delete Log File</Text>
       </TouchableOpacity>
     </View>
-);
-
+  );
 }
-// Define the styles for the SettingsScreen component
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    padding: 20,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 20,
+    width: '100%',
+    paddingHorizontal: 5,
+  },
+  textInput: {
+    flex: 1,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 4,
+    maxWidth: '70%',
+    marginLeft: 5,
+    marginRight: 5,
   },
   button: {
     backgroundColor: "#335BFF",
@@ -83,8 +208,15 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
-  logOptionsText: {
-    fontSize: 24,  
-    fontWeight: 'bold',  
-}
+  infoContainer: {
+    flexDirection: 'row',
+    marginBottom: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  idText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
 });
