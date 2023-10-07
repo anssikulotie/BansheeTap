@@ -5,11 +5,27 @@ import {
 } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import { StatusBar } from 'expo-status-bar';
+import { FontAwesome5 } from '@expo/vector-icons';
 
 export default function HomeScreen({ navigation, maintenanceMode, setMaintenanceMode }) {
   const [touches, setTouches] = useState([]);
   const clearTouchesRef = useRef(() => {});
+  const lastTap = useRef(null);
+  const [showDoubleTapHint, setShowDoubleTapHint] = useState(false); // NEW: State for showing hint
+  
+  const handleDoubleTap = () => {
+    const now = Date.now();
+    const timeInterval = now - (lastTap.current || 0);
 
+    if (timeInterval < 600 && showDoubleTapHint) { // We check for the hint instead of tap count
+      setMaintenanceMode(prev => !prev);
+      setShowDoubleTapHint(false); // Hide hint after second tap
+    } else {
+      setShowDoubleTapHint(true); // Show hint on first tap
+    }
+
+    lastTap.current = now;
+  };;
   // Define the path to the log file
   const logFilePath = FileSystem.documentDirectory + "ghost_touch_log.csv";
 
@@ -49,6 +65,7 @@ if (!fileInfo.exists) {
 
   useEffect(() => {
     navigation.setOptions({
+      headerShown: maintenanceMode,
       headerTitle: 'Maintenance screen',
       headerTitleAlign: 'center',
       headerRight: () => (
@@ -66,19 +83,28 @@ if (!fileInfo.exists) {
         : null
       )
     });
-  }, [navigation, maintenanceMode]);
+}, [navigation, maintenanceMode]);
+
 
   return (
     <>
+    
       <StatusBar style="auto" hidden={true} />
       <TouchableWithoutFeedback onPress={handleTouch}>
         <View style={styles.container}>
-          <TouchableOpacity style={styles.button} onPress={() => setMaintenanceMode(prev => !prev)}>
-            <Text style={styles.buttonText}>Toggle Maintenance Mode</Text>
-          </TouchableOpacity>
+          
+        <View style={styles.iconButtonContainer}>
+  <TouchableOpacity style={styles.iconButton} onPress={handleDoubleTap}>
+    <FontAwesome5 name="wrench" size={32} color="black" />
+  </TouchableOpacity>
+  {showDoubleTapHint && <Text style={styles.iconButtonHint}>Tap 2x{'\n'}to toggle</Text>}
+
+</View>
+          
           <Text style={styles.maintenanceText}>
             Maintenance Mode: {maintenanceMode ? "ON" : "OFF"}
           </Text>
+          
           <FlatList
             data={touches.slice(-20)}
             keyExtractor={(item, index) => index.toString()}
@@ -87,10 +113,11 @@ if (!fileInfo.exists) {
             )}
             inverted
           />
+          
         </View>
       </TouchableWithoutFeedback>
     </>
-  );
+);
 }
 
 const styles = StyleSheet.create({
@@ -99,6 +126,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     paddingTop: Platform.OS === "android" ? 50 : 0,
+    position: 'relative',
   },
   touchArea: {
     flex: 1,
@@ -109,6 +137,7 @@ const styles = StyleSheet.create({
   maintenanceText: {
     color: 'red',
     marginBottom: 10,
+    marginTop: 50,
     fontSize: 24,
     fontWeight: 'bold',
   },
@@ -119,18 +148,17 @@ const styles = StyleSheet.create({
   logContent: {
     alignItems: 'flex-start',
   },
-  button: {
-    backgroundColor: "#335BFF",
-    paddingVertical: 20,
-    paddingHorizontal: 20,
-    borderRadius: 10,
-    marginTop: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
+  iconButtonContainer: {
+    position: 'absolute',
+    top: Platform.OS === "android" ? 10 : 30,
+    right: 10,
+    alignItems: 'center'
   },
-  buttonText: {
-    color: 'white',
-    fontSize: 24,
-    fontWeight: 'bold',
-  }
+  iconButton: {
+    padding: 5,
+  },
+  iconButtonHint: {
+    fontSize: 10,
+    color: '#777',
+  },
 });

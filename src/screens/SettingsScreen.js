@@ -47,7 +47,7 @@ export default function SettingsScreen() {
 
   return (
     <View style={styles.container}>
-      <Text>Log options</Text>
+      <Text style={styles.logOptionsText}>Log options</Text>
       <TouchableOpacity style={styles.button} onPress={shareLogFile}>
         <Text style={styles.buttonText}>Export Log File</Text>
       </TouchableOpacity>
@@ -55,7 +55,8 @@ export default function SettingsScreen() {
         <Text style={styles.buttonText}>Delete Log File</Text>
       </TouchableOpacity>
     </View>
-  );
+);
+
 }
 
 const styles = StyleSheet.create({
@@ -77,5 +78,9 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
     fontWeight: 'bold',
-  }
+  },
+  logOptionsText: {
+    fontSize: 24,  
+    fontWeight: 'bold',  
+}
 });
