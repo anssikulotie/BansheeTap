@@ -1,10 +1,11 @@
-import React, { useState, useEffect,useNavigation , useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { FlatList, Text, View, StyleSheet, TouchableWithoutFeedback, TouchableOpacity, Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import { StatusBar } from 'expo-status-bar';
 import { FontAwesome5 } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import StartupScreen from './StartupScreen';
+
 export default function HomeScreen({ navigation, route, maintenanceMode, setMaintenanceMode }) {
   
   // State variables
@@ -52,8 +53,8 @@ export default function HomeScreen({ navigation, route, maintenanceMode, setMain
     lastTap.current = now;
   };
 
-  const BUFFER_SIZE = 100;  // or whatever size you deem fit
-const FLUSH_INTERVAL = 5000;  // 5 seconds
+  const BUFFER_SIZE = 50;  // 50 events
+const FLUSH_INTERVAL = 20000;  // 20 seconds
 
 const handleTouch = (event) => {
     if (maintenanceMode) return;
@@ -116,8 +117,39 @@ useEffect(() => {
 
     return () => clearInterval(intervalId);  // Cleanup the interval when the component is unmounted or when effect dependencies change
 }, [touchBuffer]);
+const flushBuffer = useCallback(async () => {
+  if (touchBuffer.length > 0) {
+      const csvContents = touchBuffer.map(touch => `${touch.timestamp}, ${touch.x}, ${touch.y}\n`).join('');
+
+      const fileInfo = await FileSystem.getInfoAsync(logFilePath);
+      if (!fileInfo.exists) {
+          const legend = "timestamp, x-coordinate, y-coordinate\n";
+          await FileSystem.writeAsStringAsync(logFilePath, legend + csvContents, { encoding: FileSystem.EncodingType.UTF8 });
+      } else {
+          const existingContent = await FileSystem.readAsStringAsync(logFilePath, { encoding: FileSystem.EncodingType.UTF8 });
+          const combinedContent = existingContent + csvContents;
+          await FileSystem.writeAsStringAsync(logFilePath, combinedContent, { encoding: FileSystem.EncodingType.UTF8 });
+      }
+      setTouchBuffer([]);  // Clear the buffer
+  }
+}, [touchBuffer, logFilePath]);
 
 
+useEffect(() => {
+  const unsubscribe = navigation.addListener('blur', () => {
+      // Flush the buffer when HomeScreen is blurred (navigated away from)
+      flushBuffer();
+  });
+
+  return unsubscribe;  // Cleanup
+}, [navigation, flushBuffer]);
+
+useEffect(() => {
+  return () => {
+      // This code will run when the component is about to unmount.
+      flushBuffer();
+  };
+}, []);
 
 useEffect(() => {
   const fetchDeviceId = async () => {

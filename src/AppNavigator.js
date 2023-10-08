@@ -16,8 +16,7 @@ export default function AppNavigator() {
   useEffect(() => {
     const checkInitialState = async () => {
       const storedId = await AsyncStorage.getItem('@device_id');
-      // For now, using a placeholder for the log file check. Implement your check here.
-      const logFileExists = true; // Replace with your logic
+      const logFileExists = true; // Adjust this as per your logic
 
       if (storedId && logFileExists) {
         setShouldSkipHome(true);
@@ -37,7 +36,21 @@ export default function AppNavigator() {
       <Stack.Navigator initialRouteName={shouldSkipHome ? "YourRecordingScreen" : "Home"}>
         <Stack.Screen 
           name="Home" 
-          children={(props) => <HomeScreen {...props} maintenanceMode={maintenanceMode} setMaintenanceMode={setMaintenanceMode} />}
+          children={(props) => {
+            const flushBuffer = async () => {
+              //... [Place the entire flushBuffer function from HomeScreen here]
+            };
+
+            useEffect(() => {
+              const unsubscribe = props.navigation.addListener('blur', () => {
+                console.log("Home screen was blurred");  // To verify if this event is being triggered
+                flushBuffer();
+              });
+              return unsubscribe; // Cleanup
+            }, [props.navigation]);
+
+            return <HomeScreen {...props} maintenanceMode={maintenanceMode} setMaintenanceMode={setMaintenanceMode} />;
+          }}
           options={({ navigation }) => ({
             headerShown: maintenanceMode,
             headerTitle: () => maintenanceMode ? (
@@ -58,7 +71,7 @@ export default function AppNavigator() {
           name="Settings" 
           children={(props) => <SettingsScreen {...props} setMaintenanceMode={setMaintenanceMode} />}
         />
-        {/* If you have a separate recording screen, define it here. */}
+        {/* Other screens go here */}
       </Stack.Navigator>
     </NavigationContainer>
   );

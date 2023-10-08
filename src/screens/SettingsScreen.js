@@ -8,6 +8,16 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 export default function SettingsScreen({ navigation, setMaintenanceMode }) {
   const [newDeviceId, setNewDeviceId] = useState('');
   const [deviceId, setDeviceId] = useState('');
+  const [buttonsDisabled, setButtonsDisabled] = useState(true);
+  const [logFileExists, setLogFileExists] = useState(false);
+  const checkLogFileExists = async () => {
+    const logFilePath = `${FileSystem.documentDirectory}${deviceId}_touch_event_log.csv`;
+    const fileInfo = await FileSystem.getInfoAsync(logFilePath);
+    setLogFileExists(fileInfo.exists);
+};
+useEffect(() => {
+  checkLogFileExists();
+}, [deviceId]);
 
 
   const handleSave = () => {
@@ -100,30 +110,38 @@ export default function SettingsScreen({ navigation, setMaintenanceMode }) {
     alert("An error occurred while sharing the log file.");
     console.error(error);
   }
+  checkLogFileExists();
 };
 
 // Define the function that will delete the log file
 const deleteLogFile = async () => {
   const logFilePath = `${FileSystem.documentDirectory}${deviceId}_touch_event_log.csv`;
-    try {
+
+  try {
       console.log("Looking for log file at:", logFilePath);
 
       const fileInfo = await FileSystem.getInfoAsync(logFilePath);
       // Check if the log file exists
       if (!fileInfo.exists) {
-        // Log file doesn't exist
-        alert("No log file found!");
-        return;
+          // Log file doesn't exist
+          alert("No log file found!");
+          return;
       }
-  // Delete the log file
+
+      // Delete the log file
       await FileSystem.deleteAsync(logFilePath);
       alert("Log file deleted successfully!");
-  
-    } catch (error) {
-      // Error deleting the log file
-      alert("Error occurred:", error);
-    }
-  };
+
+      // Update the logFileExists state
+      checkLogFileExists();
+
+  } catch (error) {
+      // Error occurred during the file operation
+      alert("An error occurred during the file operation.");
+      console.error(error);
+  }
+};
+
 // Define the function that will save the device ID to AsyncStorage
 const saveDeviceId = async () => {
   try {
@@ -170,24 +188,28 @@ const saveDeviceId = async () => {
         </View>
         : null
       }
-      <TouchableOpacity
+        <TouchableOpacity
         style={{ ...styles.button, backgroundColor: "#FF0000" }}
         onPress={clearDeviceId}
       >
         <Text style={styles.buttonText}>Clear Device ID</Text>
       </TouchableOpacity>
+      
       <TouchableOpacity
-        style={styles.button}
-        onPress={shareLogFile}
-      >
-        <Text style={styles.buttonText}>Export Log File</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.button}
-        onPress={deleteLogFile}
-      >
-        <Text style={styles.buttonText}>Delete Log File</Text>
-      </TouchableOpacity>
+    style={{...styles.button, opacity: logFileExists ? 1 : 0.5 }}
+    onPress={shareLogFile}
+    disabled={!logFileExists}
+>
+    <Text style={styles.buttonText}>Export Log File</Text>
+</TouchableOpacity>
+
+<TouchableOpacity
+    style={{...styles.button, opacity: logFileExists ? 1 : 0.5 }}
+    onPress={deleteLogFile}
+    disabled={!logFileExists}
+>
+    <Text style={styles.buttonText}>Delete Log File</Text>
+</TouchableOpacity>
     </View>
   );
 }
