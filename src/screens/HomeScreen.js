@@ -5,7 +5,6 @@ import { StatusBar } from 'expo-status-bar';
 import { FontAwesome5 } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import StartupScreen from './StartupScreen';
-
 export default function HomeScreen({ navigation, route, maintenanceMode, setMaintenanceMode }) {
   
   // State variables
@@ -20,6 +19,8 @@ export default function HomeScreen({ navigation, route, maintenanceMode, setMain
   const [isFirstLoad, setIsFirstLoad] = useState(true);
   const [isStartupScreenVisible, setIsStartupScreenVisible] = useState(true);
 
+  // State to hold the buffer
+  const [touchBuffer, setTouchBuffer] = useState([]);
 
   const getLogFilePath = () => {
     return `${FileSystem.documentDirectory}${deviceId}_touch_event_log.csv`;
@@ -51,45 +52,72 @@ export default function HomeScreen({ navigation, route, maintenanceMode, setMain
     lastTap.current = now;
   };
 
-  const handleTouch = async (event) => {
+  const BUFFER_SIZE = 100;  // or whatever size you deem fit
+const FLUSH_INTERVAL = 10000;  // 10 seconds
+
+const handleTouch = (event) => {
     if (maintenanceMode) return;
     setTouchFailureDetected(true);
     
-// Get the touch location and adjust it to the center of the screen
     const touch = event.nativeEvent;
-    const adjustedX = touch.locationX - layoutWidth / 2; 
+    const adjustedX = touch.locationX - layoutWidth / 2;
     const adjustedY = layoutHeight / 2 - touch.locationY;
-  // Get the current time and format it to ISO 8601 for the timestamp
+
     const currentTime = new Date();
     const timezoneOffsetInHours = currentTime.getTimezoneOffset() / -60;
     const localISOTime = new Date(currentTime.getTime() + timezoneOffsetInHours * 3600 * 1000)
       .toISOString().slice(0, 19).replace('T', ' ');
-  // Create an object with the touch coordinates and timestamp
+
     const touchInfo = {
       x: parseFloat(adjustedX.toFixed(0)),
       y: parseFloat(adjustedY.toFixed(0)),
       timestamp: localISOTime,
     };
-  // Add the touch object to the log file
-  setTouches([...touches, touchInfo]);
-    const csvContent = `${touchInfo.timestamp}, ${touchInfo.x}, ${touchInfo.y}\n`;
-  
-    const fileInfo = await FileSystem.getInfoAsync(logFilePath);
-if (!fileInfo.exists) {
-    const legend = "timestamp, x-coordinate, y-coordinate\n";
-    await FileSystem.writeAsStringAsync(logFilePath, legend + csvContent, { encoding: FileSystem.EncodingType.UTF8 });
-} else {
-    const existingContent = await FileSystem.readAsStringAsync(logFilePath, { encoding: FileSystem.EncodingType.UTF8 });
-    const combinedContent = existingContent + csvContent;
-    await FileSystem.writeAsStringAsync(logFilePath, combinedContent, { encoding: FileSystem.EncodingType.UTF8 });
-}
-  };
-  
-// Define the function that will clear the touches array
+
+    setTouches(prevTouches => [...prevTouches, touchInfo]);
+    setTouchBuffer(prevBuffer => [...prevBuffer, touchInfo]);
+};
+
 clearTouchesRef.current = () => {
   setTouches([]);
   setTouchFailureDetected(false);
 };
+
+useEffect(() => {
+    const saveBufferToFile = async () => {
+        const csvContents = touchBuffer.map(touch => `${touch.timestamp}, ${touch.x}, ${touch.y}\n`).join('');
+
+        const fileInfo = await FileSystem.getInfoAsync(logFilePath);
+        if (!fileInfo.exists) {
+            const legend = "timestamp, x-coordinate, y-coordinate\n";
+            await FileSystem.writeAsStringAsync(logFilePath, legend + csvContents, { encoding: FileSystem.EncodingType.UTF8 });
+        } else {
+            const existingContent = await FileSystem.readAsStringAsync(logFilePath, { encoding: FileSystem.EncodingType.UTF8 });
+            const combinedContent = existingContent + csvContents;
+            await FileSystem.writeAsStringAsync(logFilePath, combinedContent, { encoding: FileSystem.EncodingType.UTF8 });
+        }
+    };
+
+    // Size-based flushing
+    if (touchBuffer.length >= BUFFER_SIZE) {
+        saveBufferToFile().then(() => {
+            setTouchBuffer([]);  
+        });
+    }
+
+    // Time-based flushing
+    const intervalId = setInterval(() => {
+        if (touchBuffer.length > 0) {
+            saveBufferToFile().then(() => {
+                setTouchBuffer([]);
+            });
+        }
+    }, FLUSH_INTERVAL);
+
+    return () => clearInterval(intervalId);  // Cleanup the interval when the component is unmounted or when effect dependencies change
+}, [touchBuffer]);
+
+
 
 useEffect(() => {
   const fetchDeviceId = async () => {
@@ -104,11 +132,6 @@ useEffect(() => {
 
   fetchDeviceId();
 }, []);
-
-
-
-
-
 
 //newDeviceId
 useEffect(() => {
