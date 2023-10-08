@@ -1,39 +1,52 @@
-//import necessary libraries
-import React, { useState, useCallback, useNavigation  } from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import HomeScreen from './screens/HomeScreen';
 import SettingsScreen from './screens/SettingsScreen';
-import { TouchableOpacity } from 'react-native';
-import { Text } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { TouchableOpacity, Text } from 'react-native';
 
-// Define the AppNavigator component
 const Stack = createStackNavigator();
 
 export default function AppNavigator() {
   const [maintenanceMode, setMaintenanceMode] = useState(false);
-  const [] = useState([]); // Add the state for touches
-  // Define the function that will handle the touch events
+  const [isLoading, setIsLoading] = useState(true);
+  const [shouldSkipHome, setShouldSkipHome] = useState(false);
+
+  useEffect(() => {
+    const checkInitialState = async () => {
+      const storedId = await AsyncStorage.getItem('@device_id');
+      // For now, using a placeholder for the log file check. Implement your check here.
+      const logFileExists = true; // Replace with your logic
+
+      if (storedId && logFileExists) {
+        setShouldSkipHome(true);
+      }
+      setIsLoading(false);
+    };
+
+    checkInitialState();
+  }, []);
+
+  if (isLoading) {
+    return null; // or render a loading indicator
+  }
 
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="Home">
+      <Stack.Navigator initialRouteName={shouldSkipHome ? "YourRecordingScreen" : "Home"}>
         <Stack.Screen 
           name="Home" 
-          // Pass the maintenanceMode and setMaintenanceMode functions as props to the HomeScreen component
           children={(props) => <HomeScreen {...props} maintenanceMode={maintenanceMode} setMaintenanceMode={setMaintenanceMode} />}
           options={({ navigation }) => ({
-            // Add the headerRight and headerTitle options
             headerShown: maintenanceMode,
             headerTitle: () => maintenanceMode ? (
-              // Add the clear button to the header
               <TouchableOpacity onPress={() => navigation.setParams({ clearTouches: true })}>
                 <Text style={{ color: 'blue' }}>Clear</Text>
               </TouchableOpacity>
             ) : null,
             headerRight: () => (
               maintenanceMode ? 
-              // Add the Settings button to the header
               <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
                 <Text style={{ marginRight: 10 }}>Settings</Text>
               </TouchableOpacity>
@@ -41,7 +54,11 @@ export default function AppNavigator() {
             )
           })}
         />
-        <Stack.Screen name="Settings" component={SettingsScreen} />
+        <Stack.Screen 
+          name="Settings" 
+          children={(props) => <SettingsScreen {...props} setMaintenanceMode={setMaintenanceMode} />}
+        />
+        {/* If you have a separate recording screen, define it here. */}
       </Stack.Navigator>
     </NavigationContainer>
   );

@@ -5,49 +5,71 @@ import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function SettingsScreen({ navigation, }) {
+export default function SettingsScreen({ navigation, setMaintenanceMode }) {
   const [newDeviceId, setNewDeviceId] = useState('');
   const [deviceId, setDeviceId] = useState('');
 
 
   const handleSave = () => {
+    if (deviceId) {
+      Alert.alert(
+        'Device ID exists',
+        'You must clear the current Device ID before saving a new one.',
+        [{ text: 'OK' }]
+      );
+      return;
+    }
+  
     if (newDeviceId) {
-        Alert.alert(
-            'Start New Session?', // Alert Title
-            'This will start a new session with the new Device ID. Previous data will be overwritten. Continue?', // Alert Message
-            [
-                {
-                    text: 'Cancel',
-                    style: 'cancel'
-                },
-                {
-                    text: 'OK', 
-                    onPress: async () => {
-                        try {
-                            await AsyncStorage.setItem('@device_id', newDeviceId);
-                            setDeviceId(newDeviceId);  // Update the deviceId state here
-                            navigation.navigate('HomeScreen', { newDeviceId });
-                        } catch (error) {
-                            console.error("Error saving Device ID to AsyncStorage:", error);
-                        }
-                    }
-                }
-            ]
-        );
+      Alert.alert(
+        'Save ID & Start New Session?', 
+        'This will start a new session with the new Device ID. Previous data will be overwritten. Continue?', 
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'OK', 
+            onPress: async () => {
+              try {
+                await AsyncStorage.setItem('@device_id', newDeviceId);
+                setDeviceId(newDeviceId);
+                setMaintenanceMode(false); // Toggle off the maintenance mode
+                navigation.navigate('Home', { newDeviceId });
+              } catch (error) {
+                console.error("Error saving Device ID to AsyncStorage:", error);
+              }
+            }
+          }
+        ]
+      );
     }
   };
   
+  
   const clearDeviceId = async () => {
-    console.log("Attempting to clear Device ID");
-    try {
-      await AsyncStorage.removeItem('@device_id');
-      console.log("Device ID cleared from AsyncStorage");
-      setDeviceId(''); // Reset the state
-      console.log("Device ID state reset");
-    } catch (error) {
-      console.error("Error clearing device ID: ", error);
-    }
-  };
+    Alert.alert(
+        'Delete Device ID & Log Files?', 
+        'Clearing the Device ID will also delete related log files. Are you sure you want to proceed? New recording requires a new Device ID to be entered.', 
+        [
+            {text: 'Cancel', style: 'cancel'},
+            {
+                text: 'OK', 
+                onPress: async () => {
+                    try {
+                        await AsyncStorage.removeItem('@device_id');
+                        console.log("Device ID cleared from AsyncStorage");
+                        setDeviceId(''); // Reset the state
+                        console.log("Device ID state reset");
+                        // If you want to also delete the log file associated with the device ID, add the deletion logic here.
+                    } catch (error) {
+                        console.error("Error clearing device ID: ", error);
+                    }
+                }
+            }
+        ],
+        {cancelable: true}
+    );
+};
+
 
   const logFilePath = `${FileSystem.documentDirectory}${deviceId}_touch_event_log.csv`;
 

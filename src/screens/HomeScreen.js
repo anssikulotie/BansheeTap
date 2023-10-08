@@ -14,11 +14,12 @@ export default function HomeScreen({ navigation, route, maintenanceMode, setMain
   const [layoutWidth, setLayoutWidth] = useState(0);
   const [layoutHeight, setLayoutHeight] = useState(0);
   const [touchFailureDetected, setTouchFailureDetected] = useState(false);
-  const [isStartupScreenVisible, setIsStartupScreenVisible] = useState(false);
   const [deviceId, setDeviceId] = useState('');
-
   const clearTouchesRef = useRef(() => {});
   const lastTap = useRef(null);
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
+  const [isStartupScreenVisible, setIsStartupScreenVisible] = useState(true);
+
 
   const getLogFilePath = () => {
     return `${FileSystem.documentDirectory}${deviceId}_touch_event_log.csv`;
@@ -91,36 +92,36 @@ clearTouchesRef.current = () => {
 };
 
 useEffect(() => {
-  const checkLogfile = async () => {
-    const fileInfo = await FileSystem.getInfoAsync(logFilePath);
-    setIsStartupScreenVisible(!fileInfo.exists);
-  };
-
-  if (deviceId) {
-    checkLogfile();
-  }
-}, [deviceId]);
-
-useEffect(() => {
   const fetchDeviceId = async () => {
     const storedId = await AsyncStorage.getItem('@device_id');
     if (storedId) {
       setDeviceId(storedId);
+      setIsStartupScreenVisible(false); // directly go into recording mode if device ID is known
     } else {
-      setIsStartupScreenVisible(true);
+      setIsStartupScreenVisible(true); // show startup screen if device ID is unknown
     }
   };
 
   fetchDeviceId();
 }, []);
+
+
+
+
+
+
 //newDeviceId
 useEffect(() => {
   if (route.params?.newDeviceId) {
-      handleDeviceIdSubmit(route.params.newDeviceId);
+      setDeviceId(route.params.newDeviceId);
+      setMaintenanceMode(false);  // Toggle off the maintenance mode
+      clearTouchesRef.current();  // Clear the previous touch events
       // Reset the parameter to avoid continuous re-initialization
       navigation.setParams({ newDeviceId: undefined });
   }
 }, [route.params?.newDeviceId]);
+
+//Header bar
 useEffect(() => {
   navigation.setOptions({
     headerShown: maintenanceMode,
@@ -142,7 +143,6 @@ useEffect(() => {
     )
   });
 }, [navigation, maintenanceMode]);
-
 
 if (isStartupScreenVisible) {
   return <StartupScreen onDeviceIdSubmit={handleDeviceIdSubmit} />;
