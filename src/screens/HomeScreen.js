@@ -71,18 +71,18 @@ export default function HomeScreen({ navigation, route, maintenanceMode, setMain
       timestamp: localISOTime,
     };
   // Add the touch object to the log file
-    setTouches([...touches, touchInfo]);
+  setTouches([...touches, touchInfo]);
     const csvContent = `${touchInfo.timestamp}, ${touchInfo.x}, ${touchInfo.y}\n`;
-  // Write the touch event to the log file
+  
     const fileInfo = await FileSystem.getInfoAsync(logFilePath);
-if (!fileInfo.exists) { // If the file doesn't exist, create a new file with a legend
+if (!fileInfo.exists) {
     const legend = "timestamp, x-coordinate, y-coordinate\n";
     await FileSystem.writeAsStringAsync(logFilePath, legend + csvContent, { encoding: FileSystem.EncodingType.UTF8 });
-} else { // If the file already exists, append the touch event to the end of the file
-    await FileSystem.writeAsStringAsync(logFilePath, csvContent, { encoding: FileSystem.EncodingType.UTF8, append: true });
-
+} else {
+    const existingContent = await FileSystem.readAsStringAsync(logFilePath, { encoding: FileSystem.EncodingType.UTF8 });
+    const combinedContent = existingContent + csvContent;
+    await FileSystem.writeAsStringAsync(logFilePath, combinedContent, { encoding: FileSystem.EncodingType.UTF8 });
 }
-
   };
   
 // Define the function that will clear the touches array
