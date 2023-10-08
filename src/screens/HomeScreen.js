@@ -53,7 +53,7 @@ export default function HomeScreen({ navigation, route, maintenanceMode, setMain
   };
 
   const BUFFER_SIZE = 100;  // or whatever size you deem fit
-const FLUSH_INTERVAL = 10000;  // 10 seconds
+const FLUSH_INTERVAL = 5000;  // 5 seconds
 
 const handleTouch = (event) => {
     if (maintenanceMode) return;
