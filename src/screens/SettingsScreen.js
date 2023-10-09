@@ -1,9 +1,11 @@
-// import necessary packages
-import React, { useState, useEffect,useNavigation  } from 'react';
+// import necessary modules
+import React, { useState, useEffect} from 'react';
 import {Alert,  Button, View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+// Define the SettingsScreen component 
 export default function SettingsScreen({ navigation, setMaintenanceMode }) {
   const [newDeviceId, setNewDeviceId] = useState('');
   const [deviceId, setDeviceId] = useState('');
@@ -11,14 +13,18 @@ export default function SettingsScreen({ navigation, setMaintenanceMode }) {
   const checkLogFileExists = async () => {
     const logFilePath = `${FileSystem.documentDirectory}${deviceId}_touch_event_log.csv`;
     const fileInfo = await FileSystem.getInfoAsync(logFilePath);
+
+    // Update the logFileExists state
     setLogFileExists(fileInfo.exists);
 };
+// Check if the log file exists when the device ID changes
 useEffect(() => {
   checkLogFileExists();
 }, [deviceId]);
 
-
+// Define the function that will save a new device ID to AsyncStorage and navigate back to the Home screen
   const handleSave = () => {
+    // Check if there is already a device ID stored in AsyncStorage and if so, alert the user
     if (deviceId) {
       Alert.alert(
         'Device ID exists',
@@ -27,7 +33,7 @@ useEffect(() => {
       );
       return;
     }
-  
+  // Inform the user that the device ID will be saved and a new session will be started
     if (newDeviceId) {
       Alert.alert(
         'Save ID & Start New Session?', 
@@ -36,11 +42,13 @@ useEffect(() => {
           { text: 'Cancel', style: 'cancel' },
           {
             text: 'OK', 
+            //Save the new device ID to AsyncStorage and navigate back to the Home screen
             onPress: async () => {
               try {
                 await AsyncStorage.setItem('@device_id', newDeviceId);
                 setDeviceId(newDeviceId);
-                setMaintenanceMode(false); // Toggle off the maintenance mode
+                // Toggle off the maintenance mode before new session
+                setMaintenanceMode(false); 
                 navigation.navigate('Home', { newDeviceId });
               } catch (error) {
                 console.error("Error saving Device ID to AsyncStorage:", error);
@@ -52,7 +60,7 @@ useEffect(() => {
     }
   };
   
-  
+  // Define the function that will clear the device ID from AsyncStorage
   const clearDeviceId = async () => {
     Alert.alert(
         'Delete Device ID & Log Files?', 
@@ -65,9 +73,9 @@ useEffect(() => {
                     try {
                         await AsyncStorage.removeItem('@device_id');
                         console.log("Device ID cleared from AsyncStorage");
-                        setDeviceId(''); // Reset the state
+                        // Clear the device ID state
+                        setDeviceId(''); 
                         console.log("Device ID state reset");
-                        // If you want to also delete the log file associated with the device ID, add the deletion logic here.
                     } catch (error) {
                         console.error("Error clearing device ID: ", error);
                     }
@@ -77,10 +85,7 @@ useEffect(() => {
         {cancelable: true}
     );
 };
-
-
-  const logFilePath = `${FileSystem.documentDirectory}${deviceId}_touch_event_log.csv`;
-
+// Define the function to share the log file
   const shareLogFile = async () => {
   const logFilePath = `${FileSystem.documentDirectory}${deviceId}_touch_event_log.csv`;
   
@@ -104,7 +109,7 @@ useEffect(() => {
   try {
     await Sharing.shareAsync(logFilePath);
   } catch (error) {
-    // Error sharing the log file
+    //In case of error, alert the user
     alert("An error occurred while sharing the log file.");
     console.error(error);
   }
@@ -156,7 +161,7 @@ const deleteLogFile = async () => {
 
 
 
-
+// JSX code for the SettingsScreen component
   return (
     <View style={styles.container}>
       <View style={styles.inputContainer}>
@@ -202,7 +207,7 @@ const deleteLogFile = async () => {
     </View>
   );
 }
-
+// Define the styles for the SettingsScreen component
 const styles = StyleSheet.create({
   container: {
     flex: 1,

@@ -1,3 +1,4 @@
+//import necessary modules
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { FlatList, Text, View, StyleSheet, TouchableWithoutFeedback, TouchableOpacity, Platform } from 'react-native';
 import * as FileSystem from 'expo-file-system';
@@ -5,10 +6,10 @@ import { StatusBar } from 'expo-status-bar';
 import { FontAwesome5 } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import StartupScreen from './StartupScreen';
-
+// Define the HomeScreen component
 export default function HomeScreen({ navigation, route, maintenanceMode, setMaintenanceMode }) {
   
-  // State variables
+  // State variables 
   const [touches, setTouches] = useState([]);
   const [showDoubleTapHint, setShowDoubleTapHint] = useState(false);
   const [layoutWidth, setLayoutWidth] = useState(0);
@@ -21,12 +22,12 @@ export default function HomeScreen({ navigation, route, maintenanceMode, setMain
 
   // State to hold the buffer
   const [touchBuffer, setTouchBuffer] = useState([]);
-
+// Define the log file path
   const getLogFilePath = () => {
     return `${FileSystem.documentDirectory}${deviceId}_touch_event_log.csv`;
   }
   const logFilePath = getLogFilePath();
-
+// Define the handleDeviceIdSubmit function
   const handleDeviceIdSubmit = async (id) => {
     setDeviceId(id);
     setIsStartupScreenVisible(false);
@@ -37,11 +38,11 @@ export default function HomeScreen({ navigation, route, maintenanceMode, setMain
     }
 };
 
-
+// Define the handleDoubleTap function for toggling the maintenance mode
   const handleDoubleTap = () => {
     const now = Date.now();
     const timeInterval = now - (lastTap.current || 0);
-
+// Toggle the maintenance mode if the user taps twice within 600 milliseconds
     if (timeInterval < 600 && showDoubleTapHint) {
       setMaintenanceMode(prev => !prev);
       setShowDoubleTapHint(false);
@@ -51,38 +52,40 @@ export default function HomeScreen({ navigation, route, maintenanceMode, setMain
 
     lastTap.current = now;
   };
-
-  const BUFFER_SIZE = 50;  // 50 events
+// Define the constants for the buffer size and flush interval
+const BUFFER_SIZE = 50;  // 50 events
 const FLUSH_INTERVAL = 20000;  // 20 seconds
-
+// Define the handleTouch function for recording the touch events
 const handleTouch = (event) => {
     if (maintenanceMode) return;
     setTouchFailureDetected(true);
-    
+    // Get the adjusted coordinates
     const touch = event.nativeEvent;
     const adjustedX = touch.locationX - layoutWidth / 2;
     const adjustedY = layoutHeight / 2 - touch.locationY;
-
+// Get the current time in ISO format with local timezone offset applied 
     const currentTime = new Date();
     const timezoneOffsetInHours = currentTime.getTimezoneOffset() / -60;
     const localISOTime = new Date(currentTime.getTime() + timezoneOffsetInHours * 3600 * 1000)
       .toISOString().slice(0, 19).replace('T', ' ');
-
+// Create a touch info object and add it to the touches array
     const touchInfo = {
-      x: parseFloat(adjustedX.toFixed(0)),
-      y: parseFloat(adjustedY.toFixed(0)),
+      // Adjust the coordinates to be relative to the center of the screen and round them to 2 decimal places
+      x: parseFloat(adjustedX.toFixed(2)),
+      y: parseFloat(adjustedY.toFixed(2)),
       timestamp: localISOTime,
     };
-
+// Add the touch info to the buffer
     setTouches(prevTouches => [...prevTouches, touchInfo]);
     setTouchBuffer(prevBuffer => [...prevBuffer, touchInfo]);
 };
-
+// Define the clearTouchesRef function for clearing the touches array
 clearTouchesRef.current = () => {
   setTouches([]);
+  // Reset the touch failure state
   setTouchFailureDetected(false);
 };
-
+// Define the useEffect hook for flushing the buffer
 useEffect(() => {
     const saveBufferToFile = async () => {
         const csvContents = touchBuffer.map(touch => `${touch.timestamp}, ${touch.x}, ${touch.y}\n`).join('');
@@ -112,9 +115,11 @@ useEffect(() => {
                 setTouchBuffer([]);
             });
         }
-    }, FLUSH_INTERVAL);
+    },
+    // Flush the buffer every 20 seconds
+    FLUSH_INTERVAL);
 
-    return () => clearInterval(intervalId);  // Cleanup the interval when the component is unmounted or when effect dependencies change
+    return () => clearInterval(intervalId);  
 }, [touchBuffer]);
 const flushBuffer = useCallback(async () => {
   if (touchBuffer.length > 0) {
@@ -129,7 +134,7 @@ const flushBuffer = useCallback(async () => {
           const combinedContent = existingContent + csvContents;
           await FileSystem.writeAsStringAsync(logFilePath, combinedContent, { encoding: FileSystem.EncodingType.UTF8 });
       }
-      setTouchBuffer([]);  // Clear the buffer
+      setTouchBuffer([]);  
   }
 }, [touchBuffer, logFilePath]);
 
@@ -140,16 +145,16 @@ useEffect(() => {
       flushBuffer();
   });
 
-  return unsubscribe;  // Cleanup
+  return unsubscribe; 
 }, [navigation, flushBuffer]);
 
 useEffect(() => {
   return () => {
-      // This code will run when the component is about to unmount.
+      //Flush the buffer when HomeScreen is unmounted 
       flushBuffer();
   };
 }, []);
-
+// Define the useEffect hook for fetching the device ID from AsyncStorage
 useEffect(() => {
   const fetchDeviceId = async () => {
     const storedId = await AsyncStorage.getItem('@device_id');
@@ -164,7 +169,7 @@ useEffect(() => {
   fetchDeviceId();
 }, []);
 
-//newDeviceId
+// Define the useEffect hook for handling the newDeviceId parameter from SettingsScreen
 useEffect(() => {
   if (route.params?.newDeviceId) {
       setDeviceId(route.params.newDeviceId);
@@ -200,12 +205,12 @@ useEffect(() => {
   });
 }, [navigation, maintenanceMode]);
 
-if (isStartupScreenVisible) {
+if (isStartupScreenVisible) { // Show the StartupScreen component if the device ID is not set
   return <StartupScreen onDeviceIdSubmit={handleDeviceIdSubmit} />;
 }
 
-
-return ( // Return the JSX for the HomeScreen component
+// JSX to render the HomeScreen component
+return ( 
   <>
     <StatusBar style="auto" hidden={true} />
     <TouchableWithoutFeedback onPress={handleTouch}>
@@ -221,9 +226,9 @@ return ( // Return the JSX for the HomeScreen component
             <AxisMarkers />
           </>
         )}
-        <View style={styles.iconButtonContainer}>
-          <TouchableOpacity style={styles.iconButton} onPress={handleDoubleTap}>
-            <FontAwesome5 name="wrench" size={32} color="black" />
+        <View style={styles.iconButtonContainer}> 
+          <TouchableOpacity style={styles.iconButton} onPress={handleDoubleTap}> 
+            <FontAwesome5 name="toolbox" size={32} color="black" /> 
           </TouchableOpacity>
           {showDoubleTapHint && <Text style={styles.iconButtonHint}>Tap 2x{'\n'}to toggle</Text>}
         </View>

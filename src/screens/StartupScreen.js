@@ -1,3 +1,4 @@
+//import necessary modules
 import React, { useEffect, useState } from 'react';
 import { View, Button, Alert, StyleSheet, Text, ImageBackground, Dimensions } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -6,10 +7,12 @@ const backgroundImage = require("../../assets/splash.png");
 const { width, height } = Dimensions.get('window');
 const isLandscapeInit = width > height;
 
+// Define the StartupScreen component
 export default function StartupScreen({ onDeviceIdSubmit }) {
     const navigation = useNavigation();
     const [isLandscape, setIsLandscape] = useState(isLandscapeInit);
 
+    //Handle orientation change
     useEffect(() => {
         const handleOrientationChange = ({ window }) => {
             setIsLandscape(window.width > window.height);
@@ -20,7 +23,7 @@ export default function StartupScreen({ onDeviceIdSubmit }) {
             subscription.remove();
         };
     }, []);
-    // Function to start recording
+    // Function to start recording touch events
     const startRecording = async () => {
         try {
             const storedId = await AsyncStorage.getItem('@device_id');
@@ -43,7 +46,7 @@ export default function StartupScreen({ onDeviceIdSubmit }) {
             console.error("Error fetching device ID: ", error);
         }
     };
-
+//Check orientation and return the appropriate JSX
     if (isLandscape) {
         return (
             <View style={styles.container}>
@@ -66,22 +69,24 @@ export default function StartupScreen({ onDeviceIdSubmit }) {
         );
     }
 }
-
+//Define styles for the StartupScreen component
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+        paddingTop: 70
     },
     title: {
         fontSize: 32,
-        fontWeight: 'bold',
+        fontWeight: 'normal',
         letterSpacing: 1.5,
-        textShadowColor: 'rgba(0, 0, 0, 0.1)',
-        textShadowOffset: { width: -1, height: 1 },
-        textShadowRadius: 10,
+        textShadowColor: '#90ee90',
+        textShadowOffset: { width: -2, height: 3 },
+        textShadowRadius: 5,
+        textDecorationLine: 'underline',
         position: 'absolute',
-        top: 10,
+        top: 5,
         alignSelf: 'center'
     },
     backgroundContainer: {

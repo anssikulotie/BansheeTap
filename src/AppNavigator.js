@@ -1,23 +1,27 @@
+//import necessary modules
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import HomeScreen from './screens/HomeScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { TouchableOpacity, Text } from 'react-native';
+import { TouchableOpacity} from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 const Stack = createStackNavigator();
 
+// Main AppNavigator component 
 export default function AppNavigator() {
   const [maintenanceMode, setMaintenanceMode] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [shouldSkipHome, setShouldSkipHome] = useState(false);
 
+// Check if the device ID is already stored in AsyncStorage and if the log file exists 
   useEffect(() => {
     const checkInitialState = async () => {
       const storedId = await AsyncStorage.getItem('@device_id');
-      const logFileExists = true; // Adjust this as per your logic
+      const logFileExists = true; 
 
+// If the device ID is stored and the log file exists, skip the Home screen and go directly to the RecordingScreen
       if (storedId && logFileExists) {
         setShouldSkipHome(true);
       }
@@ -26,31 +30,34 @@ export default function AppNavigator() {
 
     checkInitialState();
   }, []);
-
+// If the app is still loading, return null
   if (isLoading) {
-    return null; // or render a loading indicator
+    return null; 
   }
 
+  //JSX code for the AppNavigator component
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName={shouldSkipHome ? "YourRecordingScreen" : "Home"}>
+      <Stack.Navigator initialRouteName={shouldSkipHome ? "HomeScreen" : "Home"}>
         <Stack.Screen 
           name="Home" 
           children={(props) => {
             const flushBuffer = async () => {
-              //... [Place the entire flushBuffer function from HomeScreen here]
             };
 
+        // If the Home screen is blurred, flush the buffer
             useEffect(() => {
               const unsubscribe = props.navigation.addListener('blur', () => {
-                console.log("Home screen was blurred");  // To verify if this event is being triggered
+                console.log("Home screen was blurred");  
                 flushBuffer();
               });
-              return unsubscribe; // Cleanup
+              return unsubscribe; 
             }, [props.navigation]);
 
+        // If the Home screen is focused, check if the log file exists
             return <HomeScreen {...props} maintenanceMode={maintenanceMode} setMaintenanceMode={setMaintenanceMode} />;
           }}
+          // Header options for the Home screen
           options={({ navigation }) => ({
             headerShown: maintenanceMode,
             headerTitle: () => maintenanceMode ? (
@@ -72,7 +79,6 @@ export default function AppNavigator() {
           name="Settings" 
           children={(props) => <SettingsScreen {...props} setMaintenanceMode={setMaintenanceMode} />}
         />
-        {/* Other screens go here */}
       </Stack.Navigator>
     </NavigationContainer>
   );
