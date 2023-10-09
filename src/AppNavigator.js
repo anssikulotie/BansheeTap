@@ -5,7 +5,7 @@ import HomeScreen from './screens/HomeScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TouchableOpacity, Text } from 'react-native';
-
+import { FontAwesome5 } from '@expo/vector-icons';
 const Stack = createStackNavigator();
 
 export default function AppNavigator() {
@@ -55,17 +55,18 @@ export default function AppNavigator() {
             headerShown: maintenanceMode,
             headerTitle: () => maintenanceMode ? (
               <TouchableOpacity onPress={() => navigation.setParams({ clearTouches: true })}>
-                <Text style={{ color: 'blue' }}>Clear</Text>
+                <FontAwesome5 name="eraser" size={24} color="blue" />
               </TouchableOpacity>
             ) : null,
             headerRight: () => (
               maintenanceMode ? 
               <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-                <Text style={{ marginRight: 10 }}>Settings</Text>
+                <FontAwesome5 name="cog" size={24} color="black" style={{ marginRight: 10 }} />
               </TouchableOpacity>
               : null
             )
           })}
+          
         />
         <Stack.Screen 
           name="Settings" 

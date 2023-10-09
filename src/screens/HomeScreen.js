@@ -17,7 +17,6 @@ export default function HomeScreen({ navigation, route, maintenanceMode, setMain
   const [deviceId, setDeviceId] = useState('');
   const clearTouchesRef = useRef(() => {});
   const lastTap = useRef(null);
-  const [isFirstLoad, setIsFirstLoad] = useState(true);
   const [isStartupScreenVisible, setIsStartupScreenVisible] = useState(true);
 
   // State to hold the buffer
@@ -180,20 +179,22 @@ useEffect(() => {
 useEffect(() => {
   navigation.setOptions({
     headerShown: maintenanceMode,
-    headerTitle: 'Maintenance screen',
+    headerTitle: 'Maintenance mode',
     headerTitleAlign: 'center',
     headerRight: () => (
       maintenanceMode ? 
       <TouchableOpacity onPress={() => navigation.navigate('Settings')}>
-        <Text style={{ marginRight: 10 }}>Settings</Text>
+    <FontAwesome5 name="cog" size={32} color="black" style={{ marginRight: 10 }} />
       </TouchableOpacity>
+
       : null
     ),
     headerLeft: () => (
       maintenanceMode ?
       <TouchableOpacity onPress={clearTouchesRef.current}>
-        <Text style={{ marginLeft: 10 }}>Clear display</Text>
+          <FontAwesome5 name="eraser" size={32} color="black"style={{ marginLeft: 10 }} />
       </TouchableOpacity>
+
       : null
     )
   });
@@ -228,7 +229,7 @@ return ( // Return the JSX for the HomeScreen component
         </View>
           
         <Text style={styles.maintenanceText}>
-    {maintenanceMode ? "Maintenance Mode" : "Recording Touch Events..."}
+    {maintenanceMode ? "Recording paused" : "Recording Touch Events..."}
 </Text> 
 
           

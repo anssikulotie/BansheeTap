@@ -4,11 +4,9 @@ import {Alert,  Button, View, Text, StyleSheet, TouchableOpacity, TextInput } fr
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-
 export default function SettingsScreen({ navigation, setMaintenanceMode }) {
   const [newDeviceId, setNewDeviceId] = useState('');
   const [deviceId, setDeviceId] = useState('');
-  const [buttonsDisabled, setButtonsDisabled] = useState(true);
   const [logFileExists, setLogFileExists] = useState(false);
   const checkLogFileExists = async () => {
     const logFilePath = `${FileSystem.documentDirectory}${deviceId}_touch_event_log.csv`;
@@ -139,15 +137,6 @@ const deleteLogFile = async () => {
       // Error occurred during the file operation
       alert("An error occurred during the file operation.");
       console.error(error);
-  }
-};
-
-// Define the function that will save the device ID to AsyncStorage
-const saveDeviceId = async () => {
-  try {
-      await AsyncStorage.setItem('@device_id', deviceId);
-  } catch (error) {
-      console.error("Error saving device ID: ", error);
   }
 };
 
