@@ -243,7 +243,7 @@ return (
             data={touches.slice(-20)}
             keyExtractor={(item, index) => index.toString()}
             renderItem={({ item }) => (
-              <Text>{`${item.timestamp} - X: ${item.x.toFixed(2)} Y: ${item.y.toFixed(2)}`}</Text>
+              <Text>{`${item.timestamp} - X: ${item.x.toFixed(3)} Y: ${item.y.toFixed(3)}`}</Text>
             )}
             inverted
           />
