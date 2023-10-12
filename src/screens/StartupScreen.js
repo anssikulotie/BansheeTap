@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Button, Alert, StyleSheet, Text, ImageBackground, Dimensions } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
+import { StatusBar } from 'expo-status-bar';
 const backgroundImage = require("../../assets/splash.png");
 const { width, height } = Dimensions.get('window');
 const isLandscapeInit = width > height;
@@ -49,13 +50,18 @@ export default function StartupScreen({ onDeviceIdSubmit }) {
 //Check orientation and return the appropriate JSX
     if (isLandscape) {
         return (
+            <>
+                <StatusBar hidden />
             <View style={styles.container}>
                 <Text style={styles.title}>BansheeTap</Text>
                 <Button title="Start Touch Event Recording" onPress={startRecording} />
             </View>
+            </>
         );
     } else {
         return (
+            <>
+                <StatusBar hidden />
             <ImageBackground 
                 source={backgroundImage} 
                 style={styles.backgroundContainer}
@@ -66,6 +72,7 @@ export default function StartupScreen({ onDeviceIdSubmit }) {
                     <Button title="Start Touch Event Recording" onPress={startRecording} />
                 </View>
             </ImageBackground>
+            </>
         );
     }
 }
@@ -75,7 +82,8 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingTop: 70
+        paddingTop: 70,
+        position: 'relative',
     },
     title: {
         fontSize: 32,

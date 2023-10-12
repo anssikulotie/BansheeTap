@@ -1,9 +1,12 @@
 // import necessary modules
 import React, { useState, useEffect} from 'react';
-import {Alert,  Button, View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
+import {Alert, ScrollView, Button, View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { StatusBar } from 'expo-status-bar';
+import { FontAwesome5 } from '@expo/vector-icons';
+
 
 // Define the SettingsScreen component 
 export default function SettingsScreen({ navigation, setMaintenanceMode }) {
@@ -162,7 +165,10 @@ const deleteLogFile = async () => {
 
 
 // JSX code for the SettingsScreen component
-  return (
+return (
+  <>
+    <StatusBar hidden />
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
     <View style={styles.container}>
       <View style={styles.inputContainer}>
         <TextInput
@@ -204,13 +210,29 @@ const deleteLogFile = async () => {
 >
     <Text style={styles.buttonText}>Delete Log File</Text>
 </TouchableOpacity>
+
+<TouchableOpacity
+  style={{...styles.button, opacity: logFileExists ? 1 : 0.5 }}
+  onPress={() => navigation.navigate('EventAnalyzer')}
+  disabled={!logFileExists}
+>
+  <FontAwesome5 name="map" size={24} color="white" style={{ marginRight: 10 }} />
+  <Text style={styles.buttonText}>View Heatmap</Text>
+</TouchableOpacity>
+
+
     </View>
+    </ScrollView>
+    </>
+
   );
 }
 // Define the styles for the SettingsScreen component
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+  },
+  contentContainer: {
     justifyContent: 'center',
     alignItems: 'center',
     padding: 20,
@@ -233,14 +255,15 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
   button: {
+    flexDirection: 'row',  // <-- This makes child elements (icon and text) lay out horizontally
+    alignItems: 'center',  // This vertically aligns the icon and text to the center
+    justifyContent: 'center',  // This horizontally centers the content
     backgroundColor: "#335BFF",
     paddingVertical: 15,
     paddingHorizontal: 30,
     borderRadius: 10,
     marginTop: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+},
   buttonText: {
     color: 'white',
     fontSize: 18,

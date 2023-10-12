@@ -4,6 +4,7 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import HomeScreen from './screens/HomeScreen';
 import SettingsScreen from './screens/SettingsScreen';
+import EventAnalyzer from './screens/EventAnalyzer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TouchableOpacity} from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -79,6 +80,12 @@ export default function AppNavigator() {
           name="Settings" 
           children={(props) => <SettingsScreen {...props} setMaintenanceMode={setMaintenanceMode} />}
         />
+        <Stack.Screen 
+         name="EventAnalyzer" 
+        component={EventAnalyzer}
+        options={{ headerShown: false }}
+                    
+                />
       </Stack.Navigator>
     </NavigationContainer>
   );

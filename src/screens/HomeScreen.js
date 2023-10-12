@@ -1,6 +1,6 @@
 //import necessary modules
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { FlatList, Text, View, StyleSheet, TouchableWithoutFeedback, TouchableOpacity, Platform } from 'react-native';
+import { FlatList, Text, View, StyleSheet, TouchableWithoutFeedback, TouchableOpacity, Platform,Dimensions } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import { StatusBar } from 'expo-status-bar';
 import { FontAwesome5 } from '@expo/vector-icons';
@@ -57,24 +57,29 @@ const BUFFER_SIZE = 50;  // 50 events
 const FLUSH_INTERVAL = 20000;  // 20 seconds
 // Define the handleTouch function for recording the touch events
 const handleTouch = (event) => {
+const isLandscapeNow = Dimensions.get('window').width > Dimensions.get('window').height;
+const orientation = isLandscapeNow ? 'landscape' : 'portrait';
+
     if (maintenanceMode) return;
     setTouchFailureDetected(true);
     // Get the adjusted coordinates
     const touch = event.nativeEvent;
     const adjustedX = touch.locationX - layoutWidth / 2;
-    const adjustedY = layoutHeight / 2 - touch.locationY;
-// Get the current time in ISO format with local timezone offset applied 
+    const adjustedY = touch.locationY - layoutHeight / 2;
+    // Get the current time in ISO format with local timezone offset applied 
     const currentTime = new Date();
     const timezoneOffsetInHours = currentTime.getTimezoneOffset() / -60;
     const localISOTime = new Date(currentTime.getTime() + timezoneOffsetInHours * 3600 * 1000)
       .toISOString().slice(0, 19).replace('T', ' ');
 // Create a touch info object and add it to the touches array
-    const touchInfo = {
-      // Adjust the coordinates to be relative to the center of the screen and round them to 2 decimal places
-      x: parseFloat(adjustedX.toFixed(2)),
-      y: parseFloat(adjustedY.toFixed(2)),
-      timestamp: localISOTime,
-    };
+const isPortrait = Dimensions.get('window').height > Dimensions.get('window').width;
+const touchInfo = {
+  // Adjust the coordinates to be relative to the center of the screen and round them to 2 decimal places
+  x: parseFloat(adjustedX.toFixed(2)),
+  y: parseFloat(adjustedY.toFixed(2)),
+  timestamp: localISOTime,
+  orientation: isPortrait ? 'portrait' : 'landscape'
+};
 // Add the touch info to the buffer
     setTouches(prevTouches => [...prevTouches, touchInfo]);
     setTouchBuffer(prevBuffer => [...prevBuffer, touchInfo]);
@@ -88,12 +93,12 @@ clearTouchesRef.current = () => {
 // Define the useEffect hook for flushing the buffer
 useEffect(() => {
     const saveBufferToFile = async () => {
-        const csvContents = touchBuffer.map(touch => `${touch.timestamp}, ${touch.x}, ${touch.y}\n`).join('');
+      const csvContents = touchBuffer.map(touch => `${touch.timestamp}, ${touch.x}, ${touch.y}, ${touch.orientation}\n`).join('');
 
         const fileInfo = await FileSystem.getInfoAsync(logFilePath);
         if (!fileInfo.exists) {
-            const legend = "timestamp, x-coordinate, y-coordinate\n";
-            await FileSystem.writeAsStringAsync(logFilePath, legend + csvContents, { encoding: FileSystem.EncodingType.UTF8 });
+          const legend = "timestamp, x-coordinate, y-coordinate, orientation\n";
+          await FileSystem.writeAsStringAsync(logFilePath, legend + csvContents, { encoding: FileSystem.EncodingType.UTF8 });
         } else {
             const existingContent = await FileSystem.readAsStringAsync(logFilePath, { encoding: FileSystem.EncodingType.UTF8 });
             const combinedContent = existingContent + csvContents;
@@ -123,7 +128,7 @@ useEffect(() => {
 }, [touchBuffer]);
 const flushBuffer = useCallback(async () => {
   if (touchBuffer.length > 0) {
-      const csvContents = touchBuffer.map(touch => `${touch.timestamp}, ${touch.x}, ${touch.y}\n`).join('');
+    const csvContents = touchBuffer.map(touch => `${touch.timestamp}, ${touch.x}, ${touch.y}, ${touch.orientation}\n`).join('');
 
       const fileInfo = await FileSystem.getInfoAsync(logFilePath);
       if (!fileInfo.exists) {
@@ -219,16 +224,10 @@ return (
         setLayoutWidth(width);
         setLayoutHeight(height);
       }}>
-        {maintenanceMode && (
-          <>
-            <View style={styles.gridVertical} />
-            <View style={styles.gridHorizontal} />
-            <AxisMarkers />
-          </>
-        )}
+  
         <View style={styles.iconButtonContainer}> 
           <TouchableOpacity style={styles.iconButton} onPress={handleDoubleTap}> 
-            <FontAwesome5 name="toolbox" size={32} color="black" /> 
+          <FontAwesome5 name={maintenanceMode ? "play" : "pause"} size={32} color="black" /> 
           </TouchableOpacity>
           {showDoubleTapHint && <Text style={styles.iconButtonHint}>Tap 2x{'\n'}to toggle</Text>}
         </View>
@@ -263,22 +262,7 @@ return (
 
 
 }
-// Define the AxisMarkers component
-function AxisMarkers() {
-  return (
-    // Display the axis markers in a View
-    <View style={{ position: 'absolute', width: '100%', height: '100%' }}>
-      {/* Zero marker in the center */}
-      <Text style={[styles.markerText, { top: '50%', left: '50%', transform: [{ translateX: -7 }, { translateY: -27 }] }]}>0</Text>
-      
-      {/* X label on the far right end */}
-      <Text style={[styles.markerText, { top: '50%', right: 5, transform: [{ translateY: -10 }] }]}>X</Text>
 
-      {/* Y label on the top end */}
-      <Text style={[styles.markerText, { top: 5, left: '50%', transform: [{ translateX: -10 }] }]}>Y</Text>
-    </View>
-  );
-}
 // Define the styles for the HomeScreen component
 const styles = StyleSheet.create({
   container: {
@@ -287,11 +271,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: Platform.OS === "android" ? 50 : 0,
     position: 'relative',
-  },
-  markerText: {
-    position: 'absolute',
-    fontSize: 10,
-    color: 'gray'
+
 },
   touchArea: {
     flex: 1,
@@ -326,23 +306,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#777',
   },
-  gridVertical: {
-    position: 'absolute',
-    width: 1, 
-    height: '107.5%', 
-    backgroundColor: 'gray',
-    left: '50%', 
-  
-  },
-  
-  gridHorizontal: {
-    position: 'absolute',
-    height: 1, 
-    width: '99.9%', 
-    backgroundColor: 'gray',
-    top: '50%', 
-    zIndex: -1,
-  },
+
   failureIndicator: {
     position: 'absolute',
     top: 10,
