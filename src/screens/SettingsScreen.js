@@ -169,29 +169,33 @@ return (
   <>
     <StatusBar hidden />
     <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
-    <View style={styles.container}>
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.textInput}
-          value={newDeviceId}
-          onChangeText={setNewDeviceId}
-          placeholder="Enter New Device ID"
-        />
-        <Button
-          title="Save"
-          onPress={handleSave}
-        />
+  <View style={styles.container}>
+    <View style={styles.inputContainer}>
+      <TextInput
+        style={styles.textInput}
+        value={newDeviceId}
+        onChangeText={setNewDeviceId}
+        placeholder="Enter New Device ID"
+      />
+      <TouchableOpacity
+        style={styles.saveButton} // Changed from styles.button to styles.saveButton
+        onPress={handleSave}
+      >
+        <FontAwesome5 name="save" size={24} color="white" style={{ marginRight: 10 }} />
+        <Text style={styles.buttonText}>Save</Text>
+      </TouchableOpacity>
+    </View>
+    {deviceId ? 
+      <View style={styles.infoContainer}>
+        <Text style={styles.idText}>Current Device ID: {deviceId}</Text>
       </View>
-      {deviceId ? 
-        <View style={styles.infoContainer}>
-          <Text style={styles.idText}>Current Device ID: {deviceId}</Text>
-        </View>
-        : null
-      }
+      : null
+    }
         <TouchableOpacity
         style={{ ...styles.button, backgroundColor: "#FF0000" }}
         onPress={clearDeviceId}
       >
+        <FontAwesome5 name="eraser" size={24} color="white" style={{ marginRight: 10 }} />
         <Text style={styles.buttonText}>Clear Device ID</Text>
       </TouchableOpacity>
       
@@ -200,6 +204,7 @@ return (
     onPress={shareLogFile}
     disabled={!logFileExists}
 >
+  <FontAwesome5 name="file-export" size={24} color="white" style={{ marginRight: 10 }} />
     <Text style={styles.buttonText}>Export Log File</Text>
 </TouchableOpacity>
 
@@ -208,6 +213,7 @@ return (
     onPress={deleteLogFile}
     disabled={!logFileExists}
 >
+  <FontAwesome5 name="trash-alt" size={24} color="white" style={{ marginRight: 10 }} />
     <Text style={styles.buttonText}>Delete Log File</Text>
 </TouchableOpacity>
 
@@ -255,9 +261,9 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
   button: {
-    flexDirection: 'row',  // <-- This makes child elements (icon and text) lay out horizontally
-    alignItems: 'center',  // This vertically aligns the icon and text to the center
-    justifyContent: 'center',  // This horizontally centers the content
+    flexDirection: 'row',  
+    alignItems: 'center',  
+    justifyContent: 'center',  
     backgroundColor: "#335BFF",
     paddingVertical: 15,
     paddingHorizontal: 30,
@@ -268,6 +274,16 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  saveButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: "#335BFF",
+    paddingVertical: 10,  // Reduced padding to fit better in the row
+    paddingHorizontal: 20,  // Reduced padding to fit better in the row
+    borderRadius: 10,
+    marginLeft: 10,  // Added margin to separate it from the text input
   },
   infoContainer: {
     flexDirection: 'row',

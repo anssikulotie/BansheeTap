@@ -5,6 +5,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Dimensions } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import * as ScreenOrientation from 'expo-screen-orientation';
+import { LogBox } from 'react-native';
+LogBox.ignoreLogs(['new NativeEventEmitter']);
 
 function EventAnalyzer({ navigation }) {
     const [touchData, setTouchData] = useState([]);
@@ -12,21 +14,16 @@ function EventAnalyzer({ navigation }) {
     const [deviceId, setDeviceId] = useState('');
     const [dimensions, setDimensions] = useState(Dimensions.get('window'));
     const [recordedOrientation, setRecordedOrientation] = useState(null);
+    const [displayOrientation, setDisplayOrientation] = useState('all'); // 'all', 'portrait', or 'landscape'
 
     const isLandscape = dimensions.width > dimensions.height;  // <--- Use dimensions state here
-    useEffect(() => {
-        if (recordedOrientation === 'portrait') {
-          ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
-        } else {
-          ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
-        }
-      
-        // When exiting the screen, unlock the orientation
-        return () => {
-          ScreenOrientation.unlockAsync();
-        }
-      }, [recordedOrientation]);
 
+    useEffect(() => {
+        return () => {
+            ScreenOrientation.unlockAsync();
+        };
+    }, []);
+    
       
     useEffect(() => {
         const onChange = ({ window }) => {
@@ -57,7 +54,7 @@ function EventAnalyzer({ navigation }) {
     useEffect(() => {
         if (deviceId) {
             const logFilePath = `${FileSystem.documentDirectory}${deviceId}_touch_event_log.csv`;
-    
+        
             async function fetchTouchData() {
                 try {
                     const csvContents = await FileSystem.readAsStringAsync(logFilePath);
@@ -65,30 +62,32 @@ function EventAnalyzer({ navigation }) {
                     setTouchData(parsedData);
                     
                     // Lock screen orientation based on the recordedOrientation of the first touch event
-                    setRecordedOrientation(parsedData[0]?.orientation);
- 
-                    if (recordedOrientation) {
-                        if (recordedOrientation === 'portrait') {
+                    const orientation = parsedData[0]?.orientation;
+                    setRecordedOrientation(orientation);
+     
+                    if (orientation) {
+                        if (orientation === 'portrait') {
                             await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
                         } else {
                             await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
                         }
                     }
-    
+        
                 } catch (error) {
                     console.error("Error reading the log file:", error);
                 }
             }
-    
+        
             fetchTouchData();
         }
-    
+        
         // When the EventAnalyzer screen is unmounted, unlock the screen orientation
         return () => {
             ScreenOrientation.unlockAsync();
         };
-    
+        
     }, [deviceId]);
+    
     
 
     function parseCSV(csvString) {
@@ -102,16 +101,17 @@ function EventAnalyzer({ navigation }) {
 
     function renderHeatmap() {
         return touchData.map((touch, index) => {
-            if (!isNaN(touch.x) && !isNaN(touch.y)) {
+            if ((!isNaN(touch.x) && !isNaN(touch.y)) && (displayOrientation === 'all' || touch.orientation === displayOrientation)) {
                 let adjustedX, adjustedY;
                 
                 if (touch.orientation === 'landscape') {
                     adjustedX = touch.y;
-                    adjustedY = -touch.x;
+                    adjustedY = dimensions.height - touch.x; // Since y=0 is at the top in portrait, we subtract touch.x from height for landscape
                 } else {
                     adjustedX = touch.x;
-                    adjustedY = -touch.y;
+                    adjustedY = touch.y; // No adjustment required for portrait y-values
                 }
+                
     
                 return (
                     <View 
@@ -133,12 +133,8 @@ function EventAnalyzer({ navigation }) {
         });
     }
     
+  
     
-    
-    
-    
-    
-
     return (
         <View style={{ flex: 1 }}>
             {/* Heatmap */}
@@ -148,7 +144,6 @@ function EventAnalyzer({ navigation }) {
                 onPress={() => navigation.goBack()}
             >
                 <FontAwesome5 name="arrow-left" size={15} color="black"/>
-                
             </TouchableOpacity>
             {/* Grid & Axis */}
             <View style={styles.rootContainer}>
@@ -158,17 +153,47 @@ function EventAnalyzer({ navigation }) {
                 <Text style={[styles.markerText, styles.xMarker]}>X</Text>
                 <Text style={[styles.markerText, styles.yMarker]}>Y</Text>
             </View>
+    
+ {/* Heatmap Toggle Button */}
+<TouchableOpacity 
+    style={styles.toggleButton}
+    onPress={() => setHeatmapVisible(!heatmapVisible)}
+>
+    <FontAwesome5 name="map-pin" size={15} color="black" />
+</TouchableOpacity>
 
-            {/* Toggle Button */}
-            <TouchableOpacity 
-                style={styles.toggleButton}
-                onPress={() => setHeatmapVisible(!heatmapVisible)}
-            >
-                <FontAwesome5 name="map-pin" size={15} color="black" />
-            </TouchableOpacity>
+{/* Orientation Toggle */}
+<View style={{ flexDirection: 'row', position: 'absolute', bottom: 0, left: 20 }}>
+    {displayOrientation !== 'portrait' && (
+        <TouchableOpacity
+            style={{ ...styles.toggleButton, backgroundColor: '#ddd' }}
+            onPress={async () => {
+                await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
+                setDisplayOrientation('portrait');
+            }}
+        >
+            <FontAwesome5 name="mobile-alt" size={20} color="black" />
+        </TouchableOpacity>
+    )}
+    
+    {displayOrientation !== 'landscape' && (
+        <TouchableOpacity
+            style={{ ...styles.toggleButton, backgroundColor: '#ddd', marginLeft: displayOrientation === 'portrait' ? 5 : 0 }}
+            onPress={async () => {
+                await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+                setDisplayOrientation('landscape');
+            }}
+        >
+            <FontAwesome5 name="tv" size={20} color="black" />
+        </TouchableOpacity>
+    )}
+</View>
+
+
+
         </View>
     );
-}
+                }
 
 const styles = StyleSheet.create({
   rootContainer: {
