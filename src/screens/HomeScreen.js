@@ -75,8 +75,8 @@ const orientation = isLandscapeNow ? 'landscape' : 'portrait';
 const isPortrait = Dimensions.get('window').height > Dimensions.get('window').width;
 const touchInfo = {
   // Adjust the coordinates to be relative to the center of the screen and round them to 2 decimal places
-  x: parseFloat(adjustedX.toFixed(2)),
-  y: parseFloat(adjustedY.toFixed(2)),
+  x: parseFloat(adjustedX.toFixed(3)),
+  y: parseFloat(adjustedY.toFixed(3)),
   timestamp: localISOTime,
   orientation: isPortrait ? 'portrait' : 'landscape'
 };

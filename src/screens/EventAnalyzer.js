@@ -1,12 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Text, View, StyleSheet, TouchableOpacity } from 'react-native';
+import { Text, View, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import AsyncStorage from '@react-native-async-storage/async-storage'; 
-import { Dimensions } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
-import * as ScreenOrientation from 'expo-screen-orientation';
-import { LogBox } from 'react-native';
-LogBox.ignoreLogs(['new NativeEventEmitter']);
+
 
 function EventAnalyzer({ navigation }) {
     const [touchData, setTouchData] = useState([]);
@@ -15,30 +12,32 @@ function EventAnalyzer({ navigation }) {
     const [dimensions, setDimensions] = useState(Dimensions.get('window'));
     const [recordedOrientation, setRecordedOrientation] = useState(null);
     const [displayOrientation, setDisplayOrientation] = useState('all'); // 'all', 'portrait', or 'landscape'
+    const isCurrentPortrait = dimensions.width < dimensions.height;
+    const middleX = dimensions.width / 2;
+    const middleY = dimensions.height / 2;
+    let previousOrientation = "portrait"; // default
+    let isRotatedRightwards = false;
 
-    const isLandscape = dimensions.width > dimensions.height;  // <--- Use dimensions state here
-
-    useEffect(() => {
-        return () => {
-            ScreenOrientation.unlockAsync();
-        };
-    }, []);
+    if (previousOrientation === "portrait" && isCurrentPortrait === false) {
+        if (dimensions.width > dimensions.height) {
+            // Transitioned to landscape mode
+            isRotatedRightwards = true;
+        }
+    }
     
-      
+    // Update the previousOrientation at the end of the orientation change
+    previousOrientation = isCurrentPortrait ? "portrait" : "landscape";
+    
     useEffect(() => {
         const onChange = ({ window }) => {
             setDimensions(window);
         };
-    
-        // This will automatically handle cleanup
         const subscription = Dimensions.addEventListener("change", onChange);
-    
         return () => {
             subscription.remove();
         };
     }, []);
     
-    // Fetch device ID from AsyncStorage
     useEffect(() => {
         const fetchDeviceId = async () => {
             try {
@@ -50,90 +49,91 @@ function EventAnalyzer({ navigation }) {
         };
         fetchDeviceId();
     }, []);
-
+    
     useEffect(() => {
         if (deviceId) {
             const logFilePath = `${FileSystem.documentDirectory}${deviceId}_touch_event_log.csv`;
-        
             async function fetchTouchData() {
                 try {
                     const csvContents = await FileSystem.readAsStringAsync(logFilePath);
                     const parsedData = parseCSV(csvContents);
                     setTouchData(parsedData);
-                    
-                    // Lock screen orientation based on the recordedOrientation of the first touch event
-                    const orientation = parsedData[0]?.orientation;
-                    setRecordedOrientation(orientation);
-     
-                    if (orientation) {
-                        if (orientation === 'portrait') {
-                            await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
-                        } else {
-                            await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
-                        }
-                    }
-        
+                    console.log(parsedData); // Add this line
+
                 } catch (error) {
                     console.error("Error reading the log file:", error);
                 }
             }
-        
             fetchTouchData();
         }
-        
-        // When the EventAnalyzer screen is unmounted, unlock the screen orientation
-        return () => {
-            ScreenOrientation.unlockAsync();
-        };
-        
     }, [deviceId]);
-    
-    
 
+     
     function parseCSV(csvString) {
-        const lines = csvString.trim().split('\n');
+        const lines = csvString.trim().split('\n').slice(1); // Skip the legend line
         return lines.map(line => {
-            const [timestamp, x, y, orientation] = line.split(','); // assume orientation is stored as 'portrait' or 'landscape'
-            return { timestamp, x: parseFloat(x), y: parseFloat(y), orientation };
+            const [timestamp, x, y, orientation] = line.split(','); 
+            return { 
+                timestamp, 
+                x: parseFloat(x), 
+                y: parseFloat(y), 
+                orientation: orientation ? orientation.trim() : undefined
+            };
         });
     }
+    
     
 
     function renderHeatmap() {
         return touchData.map((touch, index) => {
-            if ((!isNaN(touch.x) && !isNaN(touch.y)) && (displayOrientation === 'all' || touch.orientation === displayOrientation)) {
-                let adjustedX, adjustedY;
-                
-                if (touch.orientation === 'landscape') {
-                    adjustedX = touch.y;
-                    adjustedY = dimensions.height - touch.x; // Since y=0 is at the top in portrait, we subtract touch.x from height for landscape
-                } else {
-                    adjustedX = touch.x;
-                    adjustedY = touch.y; // No adjustment required for portrait y-values
-                }
-                
+            let adjustedX, adjustedY;
+            const middleX = dimensions.width / 2;
+            const middleY = dimensions.height / 2;
     
-                return (
-                    <View 
-                        key={index}
-                        style={{
-                            position: 'absolute',
-                            top: (dimensions.height / 2) + adjustedY - 5,
-                            left: (dimensions.width / 2) + adjustedX - 5,
-                            width: 10,
-                            height: 10,
-                            backgroundColor: 'red',
-                            borderRadius: 5,
-                            opacity: 0.5
-                        }}
-                    />
-                );
+            // Determine current orientation
+            if (isCurrentPortrait) {
+                adjustedX = middleX + touch.x;
+                adjustedY = middleY + touch.y;
+            } else if (isRotatedRightwards) {
+                adjustedX = middleX - touch.y;
+                adjustedY = middleY + touch.x;
+            } else if (isRotatedLeftwards) {
+                adjustedX = middleX + touch.y;
+                adjustedY = middleY - touch.x;
             }
-            return null; // Return null for invalid data points
+    
+            
+            
+            console.log(`Adjusted coordinates for touch ${index}:`, adjustedX, adjustedY);
+    
+            // Validate adjusted values before rendering
+            if (isNaN(adjustedX) || isNaN(adjustedY)) {
+                console.warn(`Invalid touch point at index ${index}:`, touch);
+                return null;
+            }
+    
+            return (
+                <View 
+                    key={index}
+                    style={{
+                        position: 'absolute',
+                        top: adjustedY - 5,
+                        left: adjustedX - 5,
+                        width: 10,
+                        height: 10,
+                        backgroundColor: 'red',
+                        borderRadius: 5,
+                        opacity: 0.5,
+                        zIndex: 1000 // Add this line
+
+                    }}
+                />
+            );
+            // Update the previousOrientation at the end
+            previousOrientation = isCurrentPortrait ? "portrait" : "landscape";
         });
     }
     
-  
     
     return (
         <View style={{ flex: 1 }}>
@@ -154,46 +154,16 @@ function EventAnalyzer({ navigation }) {
                 <Text style={[styles.markerText, styles.yMarker]}>Y</Text>
             </View>
     
- {/* Heatmap Toggle Button */}
-<TouchableOpacity 
-    style={styles.toggleButton}
-    onPress={() => setHeatmapVisible(!heatmapVisible)}
->
-    <FontAwesome5 name="map-pin" size={15} color="black" />
-</TouchableOpacity>
-
-{/* Orientation Toggle */}
-<View style={{ flexDirection: 'row', position: 'absolute', bottom: 0, left: 20 }}>
-    {displayOrientation !== 'portrait' && (
-        <TouchableOpacity
-            style={{ ...styles.toggleButton, backgroundColor: '#ddd' }}
-            onPress={async () => {
-                await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
-                setDisplayOrientation('portrait');
-            }}
-        >
-            <FontAwesome5 name="mobile-alt" size={20} color="black" />
-        </TouchableOpacity>
-    )}
-    
-    {displayOrientation !== 'landscape' && (
-        <TouchableOpacity
-            style={{ ...styles.toggleButton, backgroundColor: '#ddd', marginLeft: displayOrientation === 'portrait' ? 5 : 0 }}
-            onPress={async () => {
-                await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
-                setDisplayOrientation('landscape');
-            }}
-        >
-            <FontAwesome5 name="tv" size={20} color="black" />
-        </TouchableOpacity>
-    )}
-</View>
-
-
-
+            {/* Heatmap Toggle Button */}
+            <TouchableOpacity 
+                style={styles.toggleButton}
+                onPress={() => setHeatmapVisible(!heatmapVisible)}
+            >
+                <FontAwesome5 name="map-pin" size={15} color="black" />
+            </TouchableOpacity>
         </View>
     );
-                }
+}
 
 const styles = StyleSheet.create({
   rootContainer: {

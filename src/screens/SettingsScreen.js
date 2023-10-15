@@ -1,6 +1,6 @@
 // import necessary modules
 import React, { useState, useEffect} from 'react';
-import {Alert, ScrollView, Button, View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
+import {Alert, ScrollView,  View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
