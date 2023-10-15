@@ -184,7 +184,7 @@ function EventAnalyzer({ navigation }) {
                 style={styles.backButton}
                 onPress={() => navigation.goBack()}
             >
-                <FontAwesome5 name="arrow-left" size={15} color="black"/>
+                <FontAwesome5 name="arrow-left" size={20} color="black"/>
             </TouchableOpacity>
             {/* Grid & Axis */}
             <View style={styles.rootContainer}>
@@ -198,14 +198,14 @@ function EventAnalyzer({ navigation }) {
     style={styles.rotateButton}
     onPress={toggleOrientation}
 >
-    <FontAwesome5 name="redo" size={15} color="black" />
+    <FontAwesome5 name="redo" size={20} color="black" />
 </TouchableOpacity>
             {/* Heatmap Toggle Button */}
             <TouchableOpacity 
                 style={styles.toggleButton}
                 onPress={() => setHeatmapVisible(!heatmapVisible)}
             >
-                <FontAwesome5 name="map-pin" size={15} color="black" />
+                <FontAwesome5 name="map-pin" size={20} color="black" />
             </TouchableOpacity>
         </View>
     );
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
     bottom: 10,
     left: 10,
     padding: 5,
-    backgroundColor: '#ddd',
+    backgroundColor: 'rgba(221, 221, 221, 0.5)',
     borderRadius: 5,
 },
 backButton: {
@@ -263,15 +263,15 @@ backButton: {
     top: 10,
     left: 10,
     padding: 5,
-    backgroundColor: '#ddd',
-    borderRadius: 1,
+    backgroundColor: 'rgba(221, 221, 221, 0.5)',
+    borderRadius: 5,
 },
 rotateButton: {
     position: 'absolute',
     top: 10,
     right: 10,
     padding: 5,
-    backgroundColor: '#ddd',
+    backgroundColor: 'rgba(221, 221, 221, 0.5)',
     borderRadius: 5,
 }
 
