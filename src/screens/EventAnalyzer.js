@@ -40,10 +40,11 @@ function EventAnalyzer({ navigation }) {
         }
     
         lockOrientation();
-
-
-   
-            
+    
+        // This return function will be called when the component is unmounted
+        return async () => {
+            await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.DEFAULT);
+        };
     }, []);
     const toggleOrientation = async () => {
         const currentOrientation = await ScreenOrientation.getOrientationAsync();
