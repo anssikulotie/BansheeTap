@@ -3,6 +3,10 @@ import { Text, View, StyleSheet, TouchableOpacity, Dimensions } from 'react-nati
 import * as FileSystem from 'expo-file-system';
 import AsyncStorage from '@react-native-async-storage/async-storage'; 
 import { FontAwesome5 } from '@expo/vector-icons';
+import * as ScreenOrientation from 'expo-screen-orientation';
+import { AppState } from 'react-native';
+import { LogBox } from 'react-native';
+LogBox.ignoreLogs(['new NativeEventEmitter()']);
 
 
 function EventAnalyzer({ navigation }) {
@@ -15,6 +19,42 @@ function EventAnalyzer({ navigation }) {
     const isCurrentPortrait = dimensions.width < dimensions.height;
     const middleX = dimensions.width / 2;
     const middleY = dimensions.height / 2;
+    
+    useEffect(() => {
+        const appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
+    
+        return () => {
+          appStateSubscription.remove();
+        };
+    }, []);
+    
+    const handleAppStateChange = async (nextAppState) => {
+        if (nextAppState === 'background' || nextAppState === 'inactive') {
+            await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.DEFAULT);
+        }
+    };
+    
+    useEffect(() => {
+        async function lockOrientation() {
+            await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+        }
+    
+        lockOrientation();
+
+
+   
+            
+    }, []);
+    const toggleOrientation = async () => {
+        const currentOrientation = await ScreenOrientation.getOrientationAsync();
+        
+        if (currentOrientation === ScreenOrientation.Orientation.PORTRAIT_UP) {
+            await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT);
+        } else {
+            await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+        }
+    };
+    
     let previousOrientation = "portrait"; // default
     let isRotatedRightwards = false;
 
@@ -87,24 +127,21 @@ function EventAnalyzer({ navigation }) {
     function renderHeatmap() {
         return touchData.map((touch, index) => {
             let adjustedX, adjustedY;
-            const middleX = dimensions.width / 2;
-            const middleY = dimensions.height / 2;
     
-            // Determine current orientation
             if (isCurrentPortrait) {
                 adjustedX = middleX + touch.x;
                 adjustedY = middleY + touch.y;
             } else if (isRotatedRightwards) {
+                // Landscape, rotated right
                 adjustedX = middleX - touch.y;
                 adjustedY = middleY + touch.x;
-            } else if (isRotatedLeftwards) {
-                adjustedX = middleX + touch.y;
+            } else {
+                // Landscape, rotated left
+                adjustedX = touch.y + middleX;
                 adjustedY = middleY - touch.x;
             }
     
-            
-            
-            console.log(`Adjusted coordinates for touch ${index}:`, adjustedX, adjustedY);
+    
     
             // Validate adjusted values before rendering
             if (isNaN(adjustedX) || isNaN(adjustedY)) {
@@ -112,27 +149,30 @@ function EventAnalyzer({ navigation }) {
                 return null;
             }
     
-            return (
-                <View 
-                    key={index}
-                    style={{
-                        position: 'absolute',
-                        top: adjustedY - 5,
-                        left: adjustedX - 5,
-                        width: 10,
-                        height: 10,
-                        backgroundColor: 'red',
-                        borderRadius: 5,
-                        opacity: 0.5,
-                        zIndex: 1000 // Add this line
-
-                    }}
-                />
-            );
-            // Update the previousOrientation at the end
-            previousOrientation = isCurrentPortrait ? "portrait" : "landscape";
+            if ((!isNaN(touch.x) && !isNaN(touch.y)) && (displayOrientation === 'all' || touch.orientation === displayOrientation)) {
+                return (
+                    <View 
+                        key={index}
+                        style={{
+                            position: 'absolute',
+                            top: adjustedY - 5,
+                            left: adjustedX - 5,
+                            width: 10,
+                            height: 10,
+                            backgroundColor: 'red',
+                            borderRadius: 5,
+                            opacity: 0.5,
+                            zIndex: 1000
+                        }}
+                    />
+                );
+            }
+            return null; // Return null for invalid data points
         });
     }
+    
+    
+    
     
     
     return (
@@ -153,7 +193,12 @@ function EventAnalyzer({ navigation }) {
                 <Text style={[styles.markerText, styles.xMarker]}>X</Text>
                 <Text style={[styles.markerText, styles.yMarker]}>Y</Text>
             </View>
-    
+            <TouchableOpacity 
+    style={styles.rotateButton}
+    onPress={toggleOrientation}
+>
+    <FontAwesome5 name="redo" size={15} color="black" />
+</TouchableOpacity>
             {/* Heatmap Toggle Button */}
             <TouchableOpacity 
                 style={styles.toggleButton}
@@ -220,6 +265,15 @@ backButton: {
     backgroundColor: '#ddd',
     borderRadius: 1,
 },
+rotateButton: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    padding: 5,
+    backgroundColor: '#ddd',
+    borderRadius: 5,
+}
+
 });
 
 
