@@ -128,19 +128,19 @@ function EventAnalyzer({ navigation }) {
         return touchData.map((touch, index) => {
             let adjustedX, adjustedY;
     
-            if (isCurrentPortrait) {
-                adjustedX = middleX + touch.x;
-                adjustedY = middleY + touch.y;
-            } else if (isRotatedRightwards) {
-                // Landscape, rotated right
-                adjustedX = middleX - touch.y;
-                adjustedY = middleY + touch.x;
-            } else {
-                // Landscape, rotated left
+            if (touch.orientation === 'landscape' && isCurrentPortrait) {
                 adjustedX = touch.y + middleX;
                 adjustedY = middleY - touch.x;
+            } else if (touch.orientation === 'landscape') {
+                adjustedX = touch.x + middleX;
+                adjustedY = middleY + touch.y;
+            } else if (isCurrentPortrait) {
+                adjustedX = middleX + touch.x;
+                adjustedY = middleY + touch.y;
+            } else {
+                adjustedX = middleX - touch.y;
+                adjustedY = middleY + touch.x;
             }
-    
     
     
             // Validate adjusted values before rendering
