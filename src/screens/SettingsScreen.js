@@ -1,6 +1,6 @@
 // import necessary modules
 import React, { useState, useEffect} from 'react';
-import {Alert, ScrollView,  View, Text, StyleSheet, TouchableOpacity, TextInput } from 'react-native';
+import {Alert, ScrollView,  View, Text, StyleSheet, TouchableOpacity, TextInput, BackHandler  } from 'react-native';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -62,12 +62,52 @@ useEffect(() => {
       );
     }
   };
-  
+  //Define the function that will prevent the user from going back without recording a device ID
+  useEffect(() => {
+    const backAction = () => {
+        if (!deviceId) {
+            Alert.alert("ACHTUNG!", "You can't go back without saving a new Device ID.", [
+                {
+                    text: "OK"
+                }
+            ]);
+            return true;  // This will prevent the back action
+        }
+    };
+
+    const backHandler = BackHandler.addEventListener("hardwareBackPress", backAction);
+
+    return () => backHandler.remove();  // Cleanup the event listener on component unmount
+}, [deviceId]);
+// Define the function that will set the headerLeft option to a custom back button
+useEffect(() => {
+  navigation.setOptions({
+      headerLeft: () => (
+          <TouchableOpacity onPress={handleBackPress}style={{ paddingLeft: 10 }}>
+              <FontAwesome5 name="arrow-left" size={24} color="black" />
+          </TouchableOpacity>
+      ),
+  });
+}, [deviceId]);
+
+const handleBackPress = () => {
+  if (!deviceId) {
+      Alert.alert("ACHTUNG!", "You can't go back without saving a new Device ID.", [
+          {
+              text: "OK"
+          }
+      ]);
+  } else {
+      navigation.goBack(); // Allow back action if Device ID is set
+  }
+};
+
+
   // Define the function that will clear the device ID from AsyncStorage
   const clearDeviceId = async () => {
     Alert.alert(
         'Delete Device ID & Log Files?', 
-        'Clearing the Device ID will also delete related log files. Are you sure you want to proceed? New recording requires a new Device ID to be entered.', 
+        "Clearing the Device ID will delete the associated log file. Are you sure you want to continue? New Device ID is required, otherwise no log file will be saved.", 
         [
             {text: 'Cancel', style: 'cancel'},
             {

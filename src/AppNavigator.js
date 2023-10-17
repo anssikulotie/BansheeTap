@@ -77,9 +77,35 @@ export default function AppNavigator() {
           
         />
         <Stack.Screen 
-          name="Settings" 
-          children={(props) => <SettingsScreen {...props} setMaintenanceMode={setMaintenanceMode} />}
-        />
+    name="Settings" 
+    children={(props) => <SettingsScreen {...props} setMaintenanceMode={setMaintenanceMode} />}
+    options={({ route, navigation }) => {
+        const { deviceId } = route.params || {};  // Assuming you pass deviceId as a parameter
+
+        return {
+            headerLeft: () => {
+                if (!deviceId) {
+                    return (
+                        <TouchableOpacity onPress={() => {
+                            Alert.alert("ACHTUNG!", "You can't go back without saving a new Device ID.", [
+                                { text: "OK" }
+                            ]);
+                        }}>
+                            <FontAwesome5 name="arrow-left" size={24} color="black" />
+                        </TouchableOpacity>
+                    );
+                } else {
+                    // Default behavior
+                    return (
+                        <TouchableOpacity onPress={() => navigation.goBack()}>
+                            <FontAwesome5 name="arrow-left" size={24} color="black" />
+                        </TouchableOpacity>
+                    );
+                }
+            }
+        };
+    }}
+/>
         <Stack.Screen 
          name="EventAnalyzer" 
         component={EventAnalyzer}
