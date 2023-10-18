@@ -19,7 +19,8 @@ function EventAnalyzer({ navigation }) {
     const isCurrentPortrait = dimensions.width < dimensions.height;
     const middleX = dimensions.width / 2;
     const middleY = dimensions.height / 2;
-    
+    const [previousOrientation, setPreviousOrientation] = useState('portrait');
+
     useEffect(() => {
         const appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
     
@@ -50,24 +51,16 @@ function EventAnalyzer({ navigation }) {
         const currentOrientation = await ScreenOrientation.getOrientationAsync();
         
         if (currentOrientation === ScreenOrientation.Orientation.PORTRAIT_UP) {
-            await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT);
+            await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_RIGHT);
         } else {
             await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
         }
     };
     
-    let previousOrientation = "portrait"; // default
-    let isRotatedRightwards = false;
-
-    if (previousOrientation === "portrait" && isCurrentPortrait === false) {
-        if (dimensions.width > dimensions.height) {
-            // Transitioned to landscape mode
-            isRotatedRightwards = true;
-        }
-    }
+    useEffect(() => {
+        setPreviousOrientation(isCurrentPortrait ? "portrait" : "landscape");
+    }, [isCurrentPortrait]);
     
-    // Update the previousOrientation at the end of the orientation change
-    previousOrientation = isCurrentPortrait ? "portrait" : "landscape";
     
     useEffect(() => {
         const onChange = ({ window }) => {
@@ -130,17 +123,17 @@ function EventAnalyzer({ navigation }) {
             let adjustedX, adjustedY;
     
             if (touch.orientation === 'landscape' && isCurrentPortrait) {
-                adjustedX = touch.y + middleX;
-                adjustedY = middleY - touch.x;
+                adjustedX = middleY - touch.y;
+                adjustedY = touch.x;
             } else if (touch.orientation === 'landscape') {
-                adjustedX = touch.x + middleX;
-                adjustedY = middleY + touch.y;
+                adjustedX = touch.x;
+                adjustedY = touch.y;
             } else if (isCurrentPortrait) {
                 adjustedX = middleX + touch.x;
                 adjustedY = middleY + touch.y;
             } else {
-                adjustedX = middleX - touch.y;
-                adjustedY = middleY + touch.x;
+                adjustedX = middleX + touch.y;
+                adjustedY = middleY - touch.x;
             }
     
     
