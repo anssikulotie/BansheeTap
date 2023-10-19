@@ -37,6 +37,13 @@
       "favicon": "./assets/favicon.png"
     },
     "extra": {
+      "apiKey": "AIzaSyDdtK1K9b0qZgsZdW1FjaIcp_b-M_BSbMs",
+      "authDomain": "bansheetap-storage.firebaseapp.com",
+      "projectId": "bansheetap-storage",
+      "storageBucket": "bansheetap-storage.appspot.com",
+      "messagingSenderId": "745839831207",
+      "appId": "1:745839831207:web:96f00f6c26da76e92a1382",
+      "measurementId": "G-BE8JYGJT0J",
       "eas": {
         "projectId": "1780646c-ac3a-473d-86d5-a1703e6ca8dd"
       }

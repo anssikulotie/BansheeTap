@@ -87,6 +87,7 @@ function EventAnalyzer({ navigation }) {
     useEffect(() => {
         if (deviceId) {
             const logFilePath = `${FileSystem.documentDirectory}${deviceId}_touch_event_log.csv`;
+
             async function fetchTouchData() {
                 try {
                     const csvContents = await FileSystem.readAsStringAsync(logFilePath);

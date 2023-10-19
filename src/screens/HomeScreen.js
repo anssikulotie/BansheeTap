@@ -1,11 +1,14 @@
 //import necessary modules
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo  } from 'react';
 import { FlatList, Text, View, StyleSheet, TouchableWithoutFeedback, TouchableOpacity, Platform,Dimensions } from 'react-native';
 import * as FileSystem from 'expo-file-system';
+import Firebase from './Firebase';
 import { StatusBar } from 'expo-status-bar';
 import { FontAwesome5 } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import StartupScreen from './StartupScreen';
+import { LogBox } from 'react-native';
+LogBox.ignoreLogs(['new NativeEventEmitter()']);
 // Define the HomeScreen component
 export default function HomeScreen({ navigation, route, maintenanceMode, setMaintenanceMode }) {
   
@@ -20,23 +23,23 @@ export default function HomeScreen({ navigation, route, maintenanceMode, setMain
   const lastTap = useRef(null);
   const [isStartupScreenVisible, setIsStartupScreenVisible] = useState(true);
 
-  // State to hold the buffer
-  const [touchBuffer, setTouchBuffer] = useState([]);
-// Define the log file path
-  const getLogFilePath = () => {
-    return `${FileSystem.documentDirectory}${deviceId}_touch_event_log.csv`;
-  }
-  const logFilePath = getLogFilePath();
-// Define the handleDeviceIdSubmit function
-  const handleDeviceIdSubmit = async (id) => {
-    setDeviceId(id);
-    setIsStartupScreenVisible(false);
-    try {
-        await AsyncStorage.setItem('@device_id', id);
-    } catch (error) {
-        console.error("Error saving Device ID to AsyncStorage:", error);
-    }
-};
+ // State to hold the buffer
+ const [touchBuffer, setTouchBuffer] = useState([]);
+ // Define the log file path
+   const getLogFilePath = () => {
+     return `${FileSystem.documentDirectory}${deviceId}_touch_event_log.csv`;
+   }
+   const logFilePath = getLogFilePath();
+ // Define the handleDeviceIdSubmit function
+   const handleDeviceIdSubmit = async (id) => {
+     setDeviceId(id);
+     setIsStartupScreenVisible(false);
+     try {
+         await AsyncStorage.setItem('@device_id', id);
+     } catch (error) {
+         console.error("Error saving Device ID to AsyncStorage:", error);
+     }
+ };
 
 // Define the handleDoubleTap function for toggling the maintenance mode
   const handleDoubleTap = () => {
@@ -93,7 +96,13 @@ clearTouchesRef.current = () => {
 // Define the useEffect hook for flushing the buffer
 useEffect(() => {
     const saveBufferToFile = async () => {
-      const csvContents = touchBuffer.map(touch => `${touch.timestamp}, ${touch.x}, ${touch.y}, ${touch.orientation}\n`).join('');
+      const csvContents = touchBuffer.map(touch => {
+        if(!touch.timestamp) {
+          console.error("Missing timestamp in touch:", touch);
+          return ''; // or handle this case appropriately
+        }
+        return `${touch.timestamp}, ${touch.x}, ${touch.y}, ${touch.orientation}\n`;
+      }).join('');
 
         const fileInfo = await FileSystem.getInfoAsync(logFilePath);
         if (!fileInfo.exists) {
@@ -132,7 +141,7 @@ const flushBuffer = useCallback(async () => {
 
       const fileInfo = await FileSystem.getInfoAsync(logFilePath);
       if (!fileInfo.exists) {
-          const legend = "timestamp, x-coordinate, y-coordinate\n";
+          const legend = "timestamp, x-coordinate, y-coordinate, orientation\n";
           await FileSystem.writeAsStringAsync(logFilePath, legend + csvContents, { encoding: FileSystem.EncodingType.UTF8 });
       } else {
           const existingContent = await FileSystem.readAsStringAsync(logFilePath, { encoding: FileSystem.EncodingType.UTF8 });
@@ -210,7 +219,28 @@ useEffect(() => {
   });
 }, [navigation, maintenanceMode]);
 
-if (isStartupScreenVisible) { // Show the StartupScreen component if the device ID is not set
+
+// Define the useEffect hook for uploading the log file to Firebase
+const uploadLogFileHandler = async () => {
+  try {
+    await Firebase.uploadLogFile(logFilePath);
+    console.log("Log file uploaded successfully!");
+  } catch (error) {
+    console.error("Error uploading log file:", error);
+  }
+};
+// Upload the log file every 10 minutes
+useEffect(() => {
+  const uploadInterval = setInterval(() => {
+    uploadLogFileHandler();
+  }, 10 * 60 * 1000); // 10 minutes * 60 seconds * 1000 milliseconds
+
+  return () => clearInterval(uploadInterval); // Clear the interval when the component is unmounted
+}, []);
+
+
+// JSX to render the StartupScreen component if the device ID is not set earlier
+if (isStartupScreenVisible) { 
   return <StartupScreen onDeviceIdSubmit={handleDeviceIdSubmit} />;
 }
 
