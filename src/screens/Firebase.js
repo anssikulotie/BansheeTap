@@ -4,7 +4,8 @@ import Constants from 'expo-constants';
 import { getApps } from "firebase/app";
 import * as FileSystem from 'expo-file-system';
 global.Blob = global.Blob || require('node-fetch').Blob;
-
+import { LogBox } from 'react-native';
+LogBox.ignoreLogs(['new NativeEventEmitter()']);
 // Firebase Configuration (from app.json extra field)
 const firebaseConfig = {
   apiKey: Constants.expoConfig.extra.apiKey,

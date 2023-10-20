@@ -1,12 +1,14 @@
 // import necessary modules
 import React, { useState, useEffect} from 'react';
-import {Alert, ScrollView,  View, Text, StyleSheet, TouchableOpacity, TextInput, BackHandler  } from 'react-native';
+import {Alert, ScrollView,  View, Text, StyleSheet, TouchableOpacity, TextInput, BackHandler,Switch  } from 'react-native';
 import * as Sharing from 'expo-sharing';
 import * as FileSystem from 'expo-file-system';
+import Firebase from './Firebase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StatusBar } from 'expo-status-bar';
 import { FontAwesome5 } from '@expo/vector-icons';
-
+import { LogBox } from 'react-native';
+LogBox.ignoreLogs(['new NativeEventEmitter()']);
 
 // Define the SettingsScreen component 
 export default function SettingsScreen({ navigation, setMaintenanceMode }) {
@@ -202,6 +204,64 @@ const deleteLogFile = async () => {
     fetchDeviceId();
 }, []);
 
+//Function to backup the log file to Firebase manually
+const backupLogFileToFirebase = async () => {
+  Alert.alert(
+      'Backup Log File',
+      'Are you sure you want to backup the log file to Firebase?',
+      [
+          {
+              text: 'Cancel',
+              style: 'cancel',
+          },
+          {
+              text: 'OK',
+              onPress: async () => {
+                  try {
+                      const logFilePath = `${FileSystem.documentDirectory}${deviceId}_touch_event_log.csv`;
+                      await Firebase.uploadLogFile(logFilePath);
+                      console.log("Manual upload successful!");
+                      alert("Log file backed up successfully!");
+                  } catch (error) {
+                      console.error("Error backing up log file:", error);
+                      alert("Error backing up log file!");
+                  }
+              },
+          },
+      ],
+      { cancelable: true }
+  );
+};
+
+  const [isAutoUploadEnabled, setIsAutoUploadEnabled] = useState(false);
+// Define the useEffect hook for uploading the log file to Firebase
+const uploadLogFileHandler = async () => {
+  const logFilePath = `${FileSystem.documentDirectory}${deviceId}_touch_event_log.csv`;
+  try {
+    await Firebase.uploadLogFile(logFilePath);
+    console.log("Log file uploaded successfully!");
+  } catch (error) {
+    console.error("Error uploading log file:", error);
+  }
+};
+
+useEffect(() => {
+  let uploadInterval;
+
+  if (isAutoUploadEnabled) {
+    // Only initiate the interval if auto-upload is enabled
+    uploadInterval = setInterval(() => {
+      uploadLogFileHandler();
+    }, 1 * 60 * 1000); // 10 minutes * 60 seconds * 1000 milliseconds
+  }
+
+  return () => {
+    // Always clear the interval when the component is unmounted or if the state changes
+    clearInterval(uploadInterval); 
+  };
+}, [isAutoUploadEnabled, deviceId]); // Listen to changes in both isAutoUploadEnabled and deviceId
+
+
 
 
 // JSX code for the SettingsScreen component
@@ -247,7 +307,14 @@ return (
   <FontAwesome5 name="file-export" size={24} color="white" style={{ marginRight: 10 }} />
     <Text style={styles.buttonText}>Export Log File</Text>
 </TouchableOpacity>
-
+<TouchableOpacity
+    style={{ ...styles.button, opacity: logFileExists ? 1 : 0.5 }}
+    onPress={backupLogFileToFirebase}
+    disabled={!logFileExists}
+>
+    <FontAwesome5 name="cloud-upload-alt" size={24} color="white" style={{ marginRight: 10 }} />
+    <Text style={styles.buttonText}>Backup to Firebase</Text>
+</TouchableOpacity>
 <TouchableOpacity
     style={{...styles.button, opacity: logFileExists ? 1 : 0.5 }}
     onPress={deleteLogFile}
@@ -266,6 +333,13 @@ return (
   <Text style={styles.buttonText}>View Heatmap</Text>
 </TouchableOpacity>
 
+<View style={styles.switchContainer}>
+  <Text>Enable Automatic Firebase upload</Text>
+  <Switch
+    value={isAutoUploadEnabled}
+    onValueChange={value => setIsAutoUploadEnabled(value)}
+  />
+</View>
 
     </View>
     </ScrollView>
@@ -336,4 +410,14 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
   },
+  switchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 15,
+    marginVertical: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+  }
 });

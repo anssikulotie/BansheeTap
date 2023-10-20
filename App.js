@@ -1,8 +1,9 @@
 import React from 'react';
 import AppNavigator from './src/AppNavigator';
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
 import Constants from 'expo-constants';
+import { LogBox } from 'react-native';
+LogBox.ignoreLogs(['new NativeEventEmitter()']);
 
 const { apiKey: API_KEY, authDomain: AUTH_DOMAIN, projectId: PROJECT_ID, storageBucket: STORAGE_BUCKET, messagingSenderId: MESSAGING_SENDER_ID, appId: APP_ID, measurementId: MEASUREMENT_ID } = Constants.expoConfig.extra;
 
@@ -23,7 +24,6 @@ console.log("Project ID:", PROJECT_ID);
 // Try initializing Firebase
 try {
   initializeApp(firebaseConfig);
-  getAnalytics();
 } catch (error) {
   console.error("Firebase initialization error:", error);
 }

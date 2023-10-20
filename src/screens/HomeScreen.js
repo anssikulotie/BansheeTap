@@ -1,8 +1,7 @@
 //import necessary modules
-import React, { useState, useEffect, useRef, useCallback, useMemo  } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { FlatList, Text, View, StyleSheet, TouchableWithoutFeedback, TouchableOpacity, Platform,Dimensions } from 'react-native';
 import * as FileSystem from 'expo-file-system';
-import Firebase from './Firebase';
 import { StatusBar } from 'expo-status-bar';
 import { FontAwesome5 } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -25,11 +24,14 @@ export default function HomeScreen({ navigation, route, maintenanceMode, setMain
 
  // State to hold the buffer
  const [touchBuffer, setTouchBuffer] = useState([]);
+
+
  // Define the log file path
    const getLogFilePath = () => {
      return `${FileSystem.documentDirectory}${deviceId}_touch_event_log.csv`;
    }
    const logFilePath = getLogFilePath();
+
  // Define the handleDeviceIdSubmit function
    const handleDeviceIdSubmit = async (id) => {
      setDeviceId(id);
@@ -218,25 +220,6 @@ useEffect(() => {
     )
   });
 }, [navigation, maintenanceMode]);
-
-
-// Define the useEffect hook for uploading the log file to Firebase
-const uploadLogFileHandler = async () => {
-  try {
-    await Firebase.uploadLogFile(logFilePath);
-    console.log("Log file uploaded successfully!");
-  } catch (error) {
-    console.error("Error uploading log file:", error);
-  }
-};
-// Upload the log file every 10 minutes
-useEffect(() => {
-  const uploadInterval = setInterval(() => {
-    uploadLogFileHandler();
-  }, 10 * 60 * 1000); // 10 minutes * 60 seconds * 1000 milliseconds
-
-  return () => clearInterval(uploadInterval); // Clear the interval when the component is unmounted
-}, []);
 
 
 // JSX to render the StartupScreen component if the device ID is not set earlier

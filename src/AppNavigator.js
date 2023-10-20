@@ -8,6 +8,8 @@ import EventAnalyzer from './screens/EventAnalyzer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TouchableOpacity} from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { LogBox } from 'react-native';
+LogBox.ignoreLogs(['new NativeEventEmitter()']);
 const Stack = createStackNavigator();
 
 // Main AppNavigator component 
