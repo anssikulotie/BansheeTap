@@ -313,7 +313,7 @@ return (
     disabled={!logFileExists}
 >
     <FontAwesome5 name="cloud-upload-alt" size={24} color="white" style={{ marginRight: 10 }} />
-    <Text style={styles.buttonText}>Backup to Firebase</Text>
+    <Text style={styles.buttonText}>Backup Log file to Firebase</Text>
 </TouchableOpacity>
 <TouchableOpacity
     style={{...styles.button, opacity: logFileExists ? 1 : 0.5 }}

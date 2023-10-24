@@ -1,3 +1,4 @@
+//import necessary modules
 import React from 'react';
 import AppNavigator from './src/AppNavigator';
 import { initializeApp } from "firebase/app";
@@ -17,7 +18,7 @@ const firebaseConfig = {
   appId: APP_ID,
   measurementId: MEASUREMENT_ID
 };
-
+//Display the API key and project ID for debugging purposes
 console.log("API KEY:", API_KEY);
 console.log("Project ID:", PROJECT_ID);
 

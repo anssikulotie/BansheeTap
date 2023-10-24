@@ -1,3 +1,4 @@
+//import necessary components
 import React, { useState, useEffect } from 'react';
 import { Text, View, StyleSheet, TouchableOpacity, Dimensions } from 'react-native';
 import * as FileSystem from 'expo-file-system';
@@ -8,7 +9,7 @@ import { AppState } from 'react-native';
 import { LogBox } from 'react-native';
 LogBox.ignoreLogs(['new NativeEventEmitter()']);
 
-
+// Define the EventAnalyzer component
 function EventAnalyzer({ navigation }) {
     const [touchData, setTouchData] = useState([]);
     const [heatmapVisible, setHeatmapVisible] = useState(true);
@@ -21,6 +22,7 @@ function EventAnalyzer({ navigation }) {
     const middleY = dimensions.height / 2;
     const [previousOrientation, setPreviousOrientation] = useState('portrait');
 
+    
     useEffect(() => {
         const appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
     
@@ -71,7 +73,7 @@ function EventAnalyzer({ navigation }) {
             subscription.remove();
         };
     }, []);
-    
+    // Fetch the device ID from AsyncStorage
     useEffect(() => {
         const fetchDeviceId = async () => {
             try {
@@ -83,7 +85,7 @@ function EventAnalyzer({ navigation }) {
         };
         fetchDeviceId();
     }, []);
-    
+    // Fetch the touch data from the log file
     useEffect(() => {
         if (deviceId) {
             const logFilePath = `${FileSystem.documentDirectory}${deviceId}_touch_event_log.csv`;
@@ -103,7 +105,7 @@ function EventAnalyzer({ navigation }) {
         }
     }, [deviceId]);
 
-     
+     // Parse the CSV string into an array of objects
     function parseCSV(csvString) {
         const lines = csvString.trim().split('\n').slice(1); // Skip the legend line
         return lines.map(line => {
@@ -118,7 +120,7 @@ function EventAnalyzer({ navigation }) {
     }
     
     
-
+// Render the heatmap points based on the touch data
     function renderHeatmap() {
         return touchData.map((touch, index) => {
             let adjustedX, adjustedY;
@@ -143,7 +145,7 @@ function EventAnalyzer({ navigation }) {
                 console.warn(`Invalid touch point at index ${index}:`, touch);
                 return null;
             }
-    
+    // Return a View component for valid data points
             if ((!isNaN(touch.x) && !isNaN(touch.y)) && (displayOrientation === 'all' || touch.orientation === displayOrientation)) {
                 return (
                     <View 
