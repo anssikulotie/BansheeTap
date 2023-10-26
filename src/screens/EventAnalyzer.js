@@ -182,14 +182,17 @@ function EventAnalyzer({ navigation }) {
             >
                 <FontAwesome5 name="arrow-left" size={20} color="black"/>
             </TouchableOpacity>
-            {/* Grid & Axis */}
-            <View style={styles.rootContainer}>
-                <View style={styles.gridVertical} />
-                <View style={styles.gridHorizontal} />
-                <Text style={[styles.markerText, styles.zeroMarker]}>0</Text>
-                <Text style={[styles.markerText, styles.xMarker]}>X</Text>
-                <Text style={[styles.markerText, styles.yMarker]}>Y</Text>
-            </View>
+{/* Grid & Axis */}
+{isCurrentPortrait && (
+    <View style={styles.rootContainer}>
+        <View style={styles.gridVertical} />
+        <View style={styles.gridHorizontal} />
+        <Text style={[styles.markerText, styles.zeroMarker]}>0</Text>
+        <Text style={[styles.markerText, styles.xMarker]}>X</Text>
+        <Text style={[styles.markerText, styles.yMarker]}>Y</Text>
+    </View>
+)}
+
             <TouchableOpacity 
     style={styles.rotateButton}
     onPress={toggleOrientation}
@@ -214,8 +217,8 @@ const styles = StyleSheet.create({
   },
   markerText: {
     position: 'absolute',
-    color: 'gray',
-    fontSize: 12,
+    color: 'black',
+    fontSize: 15,
   },
   zeroMarker: {
     top: '50%',

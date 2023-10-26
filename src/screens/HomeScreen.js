@@ -1,8 +1,9 @@
 //import necessary modules
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback} from 'react';
 import { FlatList, Text, View, StyleSheet, TouchableWithoutFeedback, TouchableOpacity, Platform,Dimensions } from 'react-native';
 import * as FileSystem from 'expo-file-system';
 import { StatusBar } from 'expo-status-bar';
+import * as ScreenOrientation from 'expo-screen-orientation';
 import { FontAwesome5 } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import StartupScreen from './StartupScreen';
@@ -21,6 +22,18 @@ export default function HomeScreen({ navigation, route, maintenanceMode, setMain
   const clearTouchesRef = useRef(() => {});
   const lastTap = useRef(null);
   const [isStartupScreenVisible, setIsStartupScreenVisible] = useState(true);
+ 
+  // Define the isLandscapeTablet function for detecting the rotated orientation
+  const isLandscapeTablet = () => {
+    const { width, height } = Dimensions.get('screen');
+    const MIN_TABLET_WIDTH = 600; 
+    const MIN_TABLET_HEIGHT = 800;
+  
+    return width >= MIN_TABLET_WIDTH && height >= MIN_TABLET_HEIGHT;
+  };
+  // Define the rotatedStyle constant for rotated orientation
+  const rotatedStyle = isLandscapeTablet() ? { transform: [{ rotate: '90deg' }]
+ } : {};
 
  // State to hold the buffer
  const [touchBuffer, setTouchBuffer] = useState([]);
@@ -220,8 +233,29 @@ useEffect(() => {
     )
   });
 }, [navigation, maintenanceMode]);
+// Define the useEffect hook for locking the screen orientation to portrait when in recording mode
+useEffect(() => {
+  const setInitialOrientation = async () => {
+    if (maintenanceMode) {
+      await ScreenOrientation.unlockAsync();
+    } else {
+      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+    }
+  };
 
+  setInitialOrientation();
+}, [maintenanceMode]);
 
+//Styles for rotated orientation
+const failureIndicatorStyle = isLandscapeTablet() 
+    ? { left: 650, top: 70 }  
+    : { top: 10, left: 10 };
+    const pauseStyle = isLandscapeTablet() 
+    ? { right: 0, top: 1120 }  
+    : { top: 10, left: 10 };
+    const hintStyle = isLandscapeTablet() 
+    ? { right: 30, top: 1090 }  
+    : { top: 10, left: 10 };
 // JSX to render the StartupScreen component if the device ID is not set earlier
 if (isStartupScreenVisible) { 
   return <StartupScreen onDeviceIdSubmit={handleDeviceIdSubmit} />;
@@ -239,13 +273,15 @@ return (
       }}>
   
         <View style={styles.iconButtonContainer}> 
-          <TouchableOpacity style={styles.iconButton} onPress={handleDoubleTap}> 
-          <FontAwesome5 name={maintenanceMode ? "play" : "pause"} size={32} color="black" /> 
-          </TouchableOpacity>
-          {showDoubleTapHint && <Text style={styles.iconButtonHint}>Tap 2x{'\n'}to toggle</Text>}
+        <TouchableOpacity style={[styles.iconButton, pauseStyle, rotatedStyle]} onPress={handleDoubleTap}> 
+        <FontAwesome5 name={maintenanceMode ? "play" : "pause"} size={32} color="black" /> 
+        </TouchableOpacity>
+          {showDoubleTapHint &&  <Text style={[styles.iconButtonHint,hintStyle, rotatedStyle]}>
+        Tap 2x{'\n'}to toggle
+    </Text>}
         </View>
           
-        <Text style={styles.maintenanceText}>
+        <Text style={[styles.maintenanceText, rotatedStyle]}>
     {maintenanceMode ? "Recording paused" : "Recording Touch Events..."}
 </Text> 
 
@@ -264,18 +300,13 @@ return (
       
     </TouchableWithoutFeedback> 
     {touchFailureDetected && !maintenanceMode && (
-    <View style={styles.failureIndicator} pointerEvents="none"> 
-        <Text style={styles.failureText}>Touch Event Detected!</Text> 
-    </View> 
+    <View style={[styles.failureIndicator, failureIndicatorStyle, rotatedStyle]} pointerEvents="none"> 
+    <Text style={styles.failureText}>Touch Event Detected!</Text> 
+</View> 
 )}
-
-
   </>
 );
-
-
 }
-
 // Define the styles for the HomeScreen component
 const styles = StyleSheet.create({
   container: {
