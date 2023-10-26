@@ -8,10 +8,14 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StatusBar } from 'expo-status-bar';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { LogBox } from 'react-native';
+import { useAutoUpload } from './AutoUploadContext';
+
 LogBox.ignoreLogs(['new NativeEventEmitter()']);
 
 // Define the SettingsScreen component 
 export default function SettingsScreen({ navigation, setMaintenanceMode }) {
+  const { isAutoUploadEnabled, setIsAutoUploadEnabled } = useAutoUpload();
+
   const [newDeviceId, setNewDeviceId] = useState('');
   const [deviceId, setDeviceId] = useState('');
   const [logFileExists, setLogFileExists] = useState(false);
@@ -232,37 +236,6 @@ const backupLogFileToFirebase = async () => {
       { cancelable: true }
   );
 };
-
-  const [isAutoUploadEnabled, setIsAutoUploadEnabled] = useState(false);
-// Define the useEffect hook for uploading the log file to Firebase
-const uploadLogFileHandler = async () => {
-  const logFilePath = `${FileSystem.documentDirectory}${deviceId}_touch_event_log.csv`;
-  try {
-    await Firebase.uploadLogFile(logFilePath);
-    console.log("Log file uploaded successfully!");
-  } catch (error) {
-    console.error("Error uploading log file:", error);
-  }
-};
-
-useEffect(() => {
-  let uploadInterval;
-
-  if (isAutoUploadEnabled) {
-    // Only initiate the interval if auto-upload is enabled
-    uploadInterval = setInterval(() => {
-      uploadLogFileHandler();
-    }, 1 * 60 * 1000); // 10 minutes * 60 seconds * 1000 milliseconds
-  }
-
-  return () => {
-    // Always clear the interval when the component is unmounted or if the state changes
-    clearInterval(uploadInterval); 
-  };
-}, [isAutoUploadEnabled, deviceId]); // Listen to changes in both isAutoUploadEnabled and deviceId
-
-
-
 
 // JSX code for the SettingsScreen component
 return (

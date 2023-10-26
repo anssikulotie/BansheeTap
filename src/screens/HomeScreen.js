@@ -7,11 +7,14 @@ import * as ScreenOrientation from 'expo-screen-orientation';
 import { FontAwesome5 } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import StartupScreen from './StartupScreen';
+import { useAutoUpload } from './AutoUploadContext';
+
 import { LogBox } from 'react-native';
 LogBox.ignoreLogs(['new NativeEventEmitter()']);
 // Define the HomeScreen component
 export default function HomeScreen({ navigation, route, maintenanceMode, setMaintenanceMode }) {
-  
+ 
+
   // State variables 
   const [touches, setTouches] = useState([]);
   const [showDoubleTapHint, setShowDoubleTapHint] = useState(false);
@@ -22,7 +25,7 @@ export default function HomeScreen({ navigation, route, maintenanceMode, setMain
   const clearTouchesRef = useRef(() => {});
   const lastTap = useRef(null);
   const [isStartupScreenVisible, setIsStartupScreenVisible] = useState(true);
- 
+  const { isAutoUploadEnabled } = useAutoUpload();
   // Define the isLandscapeTablet function for detecting the rotated orientation
   const isLandscapeTablet = () => {
     const { width, height } = Dimensions.get('screen');

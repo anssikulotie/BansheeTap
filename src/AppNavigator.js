@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
+import { AutoUploadProvider } from './screens/AutoUploadContext';
 import HomeScreen from './screens/HomeScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import EventAnalyzer from './screens/EventAnalyzer';
@@ -40,6 +41,7 @@ export default function AppNavigator() {
 
   //JSX code for the AppNavigator component
   return (
+    <AutoUploadProvider>
     <NavigationContainer>
       <Stack.Navigator initialRouteName={shouldSkipHome ? "HomeScreen" : "Home"}>
         <Stack.Screen 
@@ -116,5 +118,6 @@ export default function AppNavigator() {
                 />
       </Stack.Navigator>
     </NavigationContainer>
+    </AutoUploadProvider>
   );
 }
