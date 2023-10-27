@@ -1,10 +1,8 @@
 ## BansheeTap
 
-## Introduction and the pur
-BansheeTap is a mobile application developed as part of the "Web and hybrid technologies in mobile programming" course. It's designed to detect and log unintended or "ghost" touches on a device's screen. The primary intent behind BansheeTap is to provide a tool that aids in Mechanical and Environmental validation and testing of the device.
+## Introduction and the purpose of the application.
+BansheeTap is a mobile application developed for the "Web and Hybrid Technologies in Mobile Programming" course. Its main purpose is to help users identify, log, and analyze unintended screen touches, known as "ghost touches". Addressing ghost touches is important part in developing high-quality mobile devices, which are suitable for use in challenging environments and professional use.
 
-## Purpose of the application
-The primary purpose of BansheeTap is to assist in identifying, logging, and analyzing unintended screen touches, commonly known as "ghost touches". This is especially crucial in environments where screen precision and reliability are important. 
 ## Usage
 BansheeTap is intended for private professional use. While the source code is made publicly available for educational and reference purposes, the application in its entirety is not intended for widespread public distribution for now.
 
