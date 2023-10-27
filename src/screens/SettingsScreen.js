@@ -8,14 +8,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StatusBar } from 'expo-status-bar';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { LogBox } from 'react-native';
-import { useAutoUpload } from './AutoUploadContext';
-
 LogBox.ignoreLogs(['new NativeEventEmitter()']);
 
 // Define the SettingsScreen component 
 export default function SettingsScreen({ navigation, setMaintenanceMode }) {
-  const { isAutoUploadEnabled, setIsAutoUploadEnabled } = useAutoUpload();
-
   const [newDeviceId, setNewDeviceId] = useState('');
   const [deviceId, setDeviceId] = useState('');
   const [logFileExists, setLogFileExists] = useState(false);
@@ -305,14 +301,6 @@ return (
   <FontAwesome5 name="map" size={24} color="white" style={{ marginRight: 10 }} />
   <Text style={styles.buttonText}>View Heatmap</Text>
 </TouchableOpacity>
-
-<View style={styles.switchContainer}>
-  <Text>Enable Automatic Firebase upload</Text>
-  <Switch
-    value={isAutoUploadEnabled}
-    onValueChange={value => setIsAutoUploadEnabled(value)}
-  />
-</View>
 
     </View>
     </ScrollView>

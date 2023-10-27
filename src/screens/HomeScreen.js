@@ -7,7 +7,6 @@ import * as ScreenOrientation from 'expo-screen-orientation';
 import { FontAwesome5 } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import StartupScreen from './StartupScreen';
-import { useAutoUpload } from './AutoUploadContext';
 
 import { LogBox } from 'react-native';
 LogBox.ignoreLogs(['new NativeEventEmitter()']);
@@ -25,7 +24,6 @@ export default function HomeScreen({ navigation, route, maintenanceMode, setMain
   const clearTouchesRef = useRef(() => {});
   const lastTap = useRef(null);
   const [isStartupScreenVisible, setIsStartupScreenVisible] = useState(true);
-  const { isAutoUploadEnabled } = useAutoUpload();
   // Define the isLandscapeTablet function for detecting the rotated orientation
   const isLandscapeTablet = () => {
     const { width, height } = Dimensions.get('screen');
@@ -236,10 +234,14 @@ useEffect(() => {
     )
   });
 }, [navigation, maintenanceMode]);
+
+
 // Define the useEffect hook for locking the screen orientation to portrait when in recording mode
 useEffect(() => {
   const setInitialOrientation = async () => {
-    if (maintenanceMode) {
+    if (isStartupScreenVisible) {
+      await ScreenOrientation.unlockAsync();
+    } else if (maintenanceMode) {
       await ScreenOrientation.unlockAsync();
     } else {
       await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
@@ -247,16 +249,16 @@ useEffect(() => {
   };
 
   setInitialOrientation();
-}, [maintenanceMode]);
+}, [maintenanceMode, isStartupScreenVisible])
 
 //Styles for rotated orientation
-const failureIndicatorStyle = isLandscapeTablet() 
+const failureIndicatorStyle = (isLandscapeTablet() && !isStartupScreenVisible) 
     ? { left: 650, top: 70 }  
     : { top: 10, left: 10 };
-    const pauseStyle = isLandscapeTablet() 
+    const pauseStyle = (isLandscapeTablet() && !isStartupScreenVisible) 
     ? { right: 0, top: 1120 }  
     : { top: 10, left: 10 };
-    const hintStyle = isLandscapeTablet() 
+    const hintStyle = (isLandscapeTablet() && !isStartupScreenVisible) 
     ? { right: 30, top: 1090 }  
     : { top: 10, left: 10 };
 // JSX to render the StartupScreen component if the device ID is not set earlier
