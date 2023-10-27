@@ -4,7 +4,7 @@
     "slug": "BansheeTap",
     "version": "1.0.0",
     "orientation": "default",
-    "icon": "./assets/icon512.png",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
       "image": "./assets/splash.png",
@@ -14,16 +14,12 @@
     "assetBundlePatterns": [
       "**/*"
     ],
-    "permissions": [
-      "READ_EXTERNAL_STORAGE",
-      "WRITE_EXTERNAL_STORAGE"
-    ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anssikulotie.bansheetap"
+      "bundleIdentifier": "com.akulotie.bansheetap"
     },
     "android": {
-      "package": "com.anssikulotie.bansheetap",
+      "package": "com.akulotie.bansheetap",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -40,8 +36,15 @@
       "favicon": "./assets/favicon.png"
     },
     "extra": {
+      "apiKey": "AIzaSyDdtK1K9b0qZgsZdW1FjaIcp_b-M_BSbMs",
+      "authDomain": "bansheetap-storage.firebaseapp.com",
+      "projectId": "bansheetap-storage",
+      "storageBucket": "bansheetap-storage.appspot.com",
+      "messagingSenderId": "745839831207",
+      "appId": "1:745839831207:web:96f00f6c26da76e92a1382",
+      "measurementId": "G-BE8JYGJT0J",
       "eas": {
-        "projectId": "1780646c-ac3a-473d-86d5-a1703e6ca8dd"
+        "projectId": "5f453962-1744-4082-9aec-fc8118a14cb1"
       }
     }
   }
