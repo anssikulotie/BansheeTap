@@ -9,6 +9,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { TouchableOpacity} from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { LogBox } from 'react-native';
+//LogBox is used to ignore the warning about the NativeEventEmitter 
 LogBox.ignoreLogs(['new NativeEventEmitter()']);
 const Stack = createStackNavigator();
 

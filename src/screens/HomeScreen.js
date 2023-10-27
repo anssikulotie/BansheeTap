@@ -7,7 +7,7 @@ import * as ScreenOrientation from 'expo-screen-orientation';
 import { FontAwesome5 } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import StartupScreen from './StartupScreen';
-
+//LogBox is used to ignore the warning about the NativeEventEmitter 
 import { LogBox } from 'react-native';
 LogBox.ignoreLogs(['new NativeEventEmitter()']);
 // Define the HomeScreen component
@@ -24,6 +24,7 @@ export default function HomeScreen({ navigation, route, maintenanceMode, setMain
   const clearTouchesRef = useRef(() => {});
   const lastTap = useRef(null);
   const [isStartupScreenVisible, setIsStartupScreenVisible] = useState(true);
+
   // Define the isLandscapeTablet function for detecting the rotated orientation
   const isLandscapeTablet = () => {
     const { width, height } = Dimensions.get('screen');
@@ -115,7 +116,7 @@ useEffect(() => {
       const csvContents = touchBuffer.map(touch => {
         if(!touch.timestamp) {
           console.error("Missing timestamp in touch:", touch);
-          return ''; // or handle this case appropriately
+          return ''; 
         }
         return `${touch.timestamp}, ${touch.x}, ${touch.y}, ${touch.orientation}\n`;
       }).join('');

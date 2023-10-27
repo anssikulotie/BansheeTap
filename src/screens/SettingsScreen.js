@@ -7,6 +7,7 @@ import Firebase from './Firebase';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StatusBar } from 'expo-status-bar';
 import { FontAwesome5 } from '@expo/vector-icons';
+//LogBox is used to ignore the warning about the NativeEventEmitter 
 import { LogBox } from 'react-native';
 LogBox.ignoreLogs(['new NativeEventEmitter()']);
 
@@ -41,7 +42,7 @@ useEffect(() => {
   // Inform the user that the device ID will be saved and a new session will be started
     if (newDeviceId) {
       Alert.alert(
-        'Save ID & Start New Session?', 
+        'Save ID and Start New Session?', 
         'This will start a new session with the new Device ID. Previous data will be overwritten. Continue?', 
         [
           { text: 'Cancel', style: 'cancel' },
@@ -64,7 +65,7 @@ useEffect(() => {
       );
     }
   };
-  //Define the function that will prevent the user from going back without recording a device ID
+  //Define the function that will prevent the use of hardware back button without recording a device ID
   useEffect(() => {
     const backAction = () => {
         if (!deviceId) {
@@ -92,6 +93,7 @@ useEffect(() => {
   });
 }, [deviceId]);
 
+// Define the function that will prevent the use of navigation back button without recording a device ID
 const handleBackPress = () => {
   if (!deviceId) {
       Alert.alert("ACHTUNG!", "You can't go back without saving a new Device ID.", [
@@ -208,7 +210,7 @@ const deleteLogFile = async () => {
 const backupLogFileToFirebase = async () => {
   Alert.alert(
       'Backup Log File',
-      'Are you sure you want to backup the log file to Firebase?',
+      'Are you sure you want to upload the log file to Firebase?',
       [
           {
               text: 'Cancel',
@@ -221,10 +223,10 @@ const backupLogFileToFirebase = async () => {
                       const logFilePath = `${FileSystem.documentDirectory}${deviceId}_touch_event_log.csv`;
                       await Firebase.uploadLogFile(logFilePath);
                       console.log("Manual upload successful!");
-                      alert("Log file backed up successfully!");
+                      alert("Log file uploaded successfully!");
                   } catch (error) {
-                      console.error("Error backing up log file:", error);
-                      alert("Error backing up log file!");
+                      console.error("Error uploading the log file:", error);
+                      alert("Error uploading the log file!");
                   }
               },
           },
@@ -282,7 +284,7 @@ return (
     disabled={!logFileExists}
 >
     <FontAwesome5 name="cloud-upload-alt" size={24} color="white" style={{ marginRight: 10 }} />
-    <Text style={styles.buttonText}>Backup Log file to Firebase</Text>
+    <Text style={styles.buttonText}>Backup Log File to Firebase</Text>
 </TouchableOpacity>
 <TouchableOpacity
     style={{...styles.button, opacity: logFileExists ? 1 : 0.5 }}

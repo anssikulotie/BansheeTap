@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FontAwesome5 } from '@expo/vector-icons';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import { AppState } from 'react-native';
+//LogBox is used to ignore the warning about the NativeEventEmitter 
 import { LogBox } from 'react-native';
 LogBox.ignoreLogs(['new NativeEventEmitter()']);
 
@@ -22,7 +23,7 @@ function EventAnalyzer({ navigation }) {
     const middleY = dimensions.height / 2;
     const [previousOrientation, setPreviousOrientation] = useState('portrait');
 
-    
+    // Lock the screen orientation to portrait mode when the app is in the background
     useEffect(() => {
         const appStateSubscription = AppState.addEventListener('change', handleAppStateChange);
     
@@ -49,6 +50,8 @@ function EventAnalyzer({ navigation }) {
             await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.DEFAULT);
         };
     }, []);
+
+    // Toggle the heatmap display orientation
     const toggleOrientation = async () => {
         const currentOrientation = await ScreenOrientation.getOrientationAsync();
         
@@ -63,7 +66,7 @@ function EventAnalyzer({ navigation }) {
         setPreviousOrientation(isCurrentPortrait ? "portrait" : "landscape");
     }, [isCurrentPortrait]);
     
-    
+    // Update the recorded orientation when the screen orientation changes
     useEffect(() => {
         const onChange = ({ window }) => {
             setDimensions(window);
@@ -182,23 +185,23 @@ function EventAnalyzer({ navigation }) {
             >
                 <FontAwesome5 name="arrow-left" size={20} color="black"/>
             </TouchableOpacity>
-{/* Grid & Axis */}
-{isCurrentPortrait && (
-    <View style={styles.rootContainer}>
-        <View style={styles.gridVertical} />
-        <View style={styles.gridHorizontal} />
-        <Text style={[styles.markerText, styles.zeroMarker]}>0</Text>
-        <Text style={[styles.markerText, styles.xMarker]}>X</Text>
-        <Text style={[styles.markerText, styles.yMarker]}>Y</Text>
-    </View>
+            {/* Grid & Axis */}
+                {isCurrentPortrait && (
+            <View style={styles.rootContainer}>
+                <View style={styles.gridVertical} />
+                <View style={styles.gridHorizontal} />
+                <Text style={[styles.markerText, styles.zeroMarker]}>0</Text>
+                <Text style={[styles.markerText, styles.xMarker]}>X</Text>
+                <Text style={[styles.markerText, styles.yMarker]}>Y</Text>
+            </View>
 )}
 
-            <TouchableOpacity 
-    style={styles.rotateButton}
-    onPress={toggleOrientation}
->
-    <FontAwesome5 name="redo" size={20} color="black" />
-</TouchableOpacity>
+    <TouchableOpacity 
+        style={styles.rotateButton}
+        onPress={toggleOrientation}
+    >
+        <FontAwesome5 name="redo" size={20} color="black" />
+    </TouchableOpacity>
             {/* Heatmap Toggle Button */}
             <TouchableOpacity 
                 style={styles.toggleButton}

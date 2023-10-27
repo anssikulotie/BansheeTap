@@ -4,6 +4,7 @@ import { View, Button, Alert, StyleSheet, Text, ImageBackground, Dimensions } fr
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
+//LogBox is used to ignore the warning about the NativeEventEmitter 
 import { LogBox } from 'react-native';
 LogBox.ignoreLogs(['new NativeEventEmitter()']);
 const backgroundImage = require("../../assets/splash.png");
