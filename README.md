@@ -20,4 +20,5 @@ This project is for educational and personal use only. Unauthorized distribution
 All the artwork and images used in the application are AI-created.
 
 
-
+## APK Version
+APK can be downloaded from my Google Drive for testing purposes: https://drive.google.com/file/d/1-_tn6g-UdXC6YJMrYvO8Mea2FY6zkQba/view?usp=sharing
