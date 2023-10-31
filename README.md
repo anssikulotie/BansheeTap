@@ -21,5 +21,5 @@ All the artwork and images used in the application are AI-created.
 
 
 ## APK Version
-APK can be downloaded from my Google Drive for testing purposes: https://drive.google.com/file/d/1-_tn6g-UdXC6YJMrYvO8Mea2FY6zkQba/view?usp=sharing
+APK can be downloaded from my Google Drive for testing purposes: https://drive.google.com/file/d/1OJt7HEuqeh9-lHn7vw6ud-dIlnj98CHd/view?usp=sharing
 (Note that Firebase access is not public and you are not able to view your data. Firebase access is provided for specific persons only)
