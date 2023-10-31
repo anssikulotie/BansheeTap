@@ -36,13 +36,12 @@
       "favicon": "./assets/favicon.png"
     },
     "extra": {
-      "apiKey": "AIzaSyDdtK1K9b0qZgsZdW1FjaIcp_b-M_BSbMs",
-      "authDomain": "bansheetap-storage.firebaseapp.com",
-      "projectId": "bansheetap-storage",
-      "storageBucket": "bansheetap-storage.appspot.com",
-      "messagingSenderId": "745839831207",
-      "appId": "1:745839831207:web:96f00f6c26da76e92a1382",
-      "measurementId": "G-BE8JYGJT0J",
+      "apiKey": "AIzaSyDmH2dOZfJdkUxcowTnVQjtfD10UdvJ_Ww",
+      "authDomain": "bansheetap-fcfa6.firebaseapp.com",
+      "projectId": "bansheetap-fcfa6",
+      "storageBucket": "bansheetap-fcfa6.appspot.com",
+      "messagingSenderId": "60415772462",
+      "appId": "1:60415772462:web:7ab560347206f7bbfd9cbf",
       "eas": {
         "projectId": "5f453962-1744-4082-9aec-fc8118a14cb1"
       }
