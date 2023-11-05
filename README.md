@@ -11,6 +11,8 @@ BansheeTap is intended for private professional use. While the source code is ma
 - **Maintenance Mode**: Allows for user interaction without logging touch events and causing abnormalities in log files.
 - **Data Storage and Exporting**: Recorded log files are saved in device storage and can be exported with installed applications and directly to Firebase.
 - **Heatmap**: Heatmap allows the user to analyze the data by viewing the recorded touch points on-screen.
+
+Please refer to FAQ.docx for more information.
   
 ## Contributing
 As this is a school project, contributions are currently not being accepted. However, feedback and suggestions are always welcome.
