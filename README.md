@@ -19,6 +19,14 @@ As this is a school project, contributions are currently not being accepted. How
 This project is for educational and personal use only. Unauthorized distribution or commercial use without given permission is prohibited. 
 All the artwork and images used in the application are AI-created.
 
+##Bring up guide
+
+Clone the repository to your computer
+Navigate to project directory, use main-branch
+Install dependencies: npm install
+Start the app: npx expo start
+Open Expo Go on your mobile device and scan the QR code.
+Ensure your device is on the same network as your computer.
 
 ## APK Version
 APK can be downloaded from my Google Drive for testing purposes: https://drive.google.com/file/d/1OJt7HEuqeh9-lHn7vw6ud-dIlnj98CHd/view?usp=sharing
