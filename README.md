@@ -19,7 +19,7 @@ As this is a school project, contributions are currently not being accepted. How
 This project is for educational and personal use only. Unauthorized distribution or commercial use without given permission is prohibited. 
 All the artwork and images used in the application are AI-created.
 
-##Bring up guide
+## Bring up guide
 
 Clone the repository to your computer
 Navigate to project directory, use main-branch
