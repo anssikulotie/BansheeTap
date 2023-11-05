@@ -257,11 +257,11 @@ const failureIndicatorStyle = (isLandscapeTablet() && !isStartupScreenVisible)
     ? { left: 650, top: 70 }  
     : { top: 10, left: 10 };
     const pauseStyle = (isLandscapeTablet() && !isStartupScreenVisible) 
-    ? { right: 0, top: 1120 }  
-    : { top: 10, left: 10 };
+    ? { right: 0, top: 1095 }  
+    : { top: 10, left: 5 };
     const hintStyle = (isLandscapeTablet() && !isStartupScreenVisible) 
-    ? { right: 30, top: 1090 }  
-    : { top: 10, left: 10 };
+    ? { right: 30, top: 1065 }  
+    : { top: 10, left: 5 };
 // JSX to render the StartupScreen component if the device ID is not set earlier
 if (isStartupScreenVisible) { 
   return <StartupScreen onDeviceIdSubmit={handleDeviceIdSubmit} />;
@@ -287,9 +287,12 @@ return (
     </Text>}
         </View>
           
-        <Text style={[styles.maintenanceText, rotatedStyle]}>
+        <Text style={[
+    styles.maintenanceText,
+    !maintenanceMode && rotatedStyle // This applies the rotatedStyle only when maintenanceMode is false
+]}>
     {maintenanceMode ? "Recording paused" : "Recording Touch Events..."}
-</Text> 
+</Text>
 
           
         {maintenanceMode && (
