@@ -1,7 +1,7 @@
 ## BansheeTap
 
 ## Introduction and the purpose of the application.
-BansheeTap is a mobile application developed for the "Web and Hybrid Technologies in Mobile Programming" course. Its main purpose is to help users identify, log, and analyze unintended screen touches, known as "ghost touches". Addressing ghost touches is important part in developing high-quality mobile devices, which are suitable for use in challenging environments and professional use.
+BansheeTap is a mobile application developed for the "Web and Hybrid Technologies in Mobile Programming" course. Its main purpose is to help users identify, log, and analyze unintended screen touches, known as "ghost touches". Addressing ghost touches is important part in developing high-quality mobile devices, which are suitable for use in challenging environments and professional use. BansheeTap is developed for Android devices.
 
 ## Usage
 BansheeTap is intended for private professional use. While the source code is made publicly available for educational and reference purposes, the application in its entirety is not intended for widespread public distribution for now.
@@ -31,7 +31,7 @@ All the artwork and images used in the application are AI-created.
 
 4. Start the app: npx expo start
 
-5. Open Expo Go on your mobile device and scan the QR code.
+5. Open Expo Go on your mobile device and scan the QR code. 
    
 Ensure your device is on the same network as your computer.
 
