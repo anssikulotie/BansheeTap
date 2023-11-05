@@ -29,5 +29,5 @@ Open Expo Go on your mobile device and scan the QR code.
 Ensure your device is on the same network as your computer.
 
 ## APK Version
-APK can be downloaded from my Google Drive for testing purposes: https://drive.google.com/file/d/1OJt7HEuqeh9-lHn7vw6ud-dIlnj98CHd/view?usp=sharing
+APK can be downloaded and installed from Expo Dev for testing purposes: https://expo.dev/accounts/akulotie/projects/BansheeTap/builds/b84b1e71-cf01-4aa3-a67a-e32dfa196975
 (Note that Firebase access is not public and you are not able to view your data. Firebase access is provided for specific persons only)
