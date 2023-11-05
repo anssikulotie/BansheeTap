@@ -21,11 +21,16 @@ All the artwork and images used in the application are AI-created.
 
 ## Bring up guide
 
-Clone the repository to your computer
-Navigate to project directory, use main-branch
-Install dependencies: npm install
-Start the app: npx expo start
-Open Expo Go on your mobile device and scan the QR code.
+1. Clone the repository to your computer
+
+2. Navigate to project directory, use main-branch
+
+3. Install dependencies: npm install
+
+4. Start the app: npx expo start
+
+5. Open Expo Go on your mobile device and scan the QR code.
+   
 Ensure your device is on the same network as your computer.
 
 ## APK Version
