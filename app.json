@@ -41,10 +41,7 @@
       "projectId": "bansheetap-fcfa6",
       "storageBucket": "bansheetap-fcfa6.appspot.com",
       "messagingSenderId": "60415772462",
-      "appId": "1:60415772462:web:7ab560347206f7bbfd9cbf",
-      "eas": {
-        "projectId": "5f453962-1744-4082-9aec-fc8118a14cb1"
-      }
+      "appId": "1:60415772462:web:7ab560347206f7bbfd9cbf"
     }
   }
 }
