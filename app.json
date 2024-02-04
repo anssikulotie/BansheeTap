@@ -35,13 +35,7 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
-    "extra": {
-      "apiKey": "AIzaSyDmH2dOZfJdkUxcowTnVQjtfD10UdvJ_Ww",
-      "authDomain": "bansheetap-fcfa6.firebaseapp.com",
-      "projectId": "bansheetap-fcfa6",
-      "storageBucket": "bansheetap-fcfa6.appspot.com",
-      "messagingSenderId": "60415772462",
-      "appId": "1:60415772462:web:7ab560347206f7bbfd9cbf"
+   
     }
   }
 }
